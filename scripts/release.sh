@@ -195,7 +195,16 @@ step "Pushing main + tags"
 git push origin main --tags
 ok "Pushed"
 
-# ── 12. Cleanup ──
+# ── 12. Create GitHub Release ──
+
+step "Creating GitHub Release"
+if gh release create "v$VERSION" --title "webwrench v$VERSION" --generate-notes; then
+    ok "GitHub Release created — publish pipeline will run automatically"
+else
+    warn "Could not create GitHub Release (create manually if needed)"
+fi
+
+# ── 13. Cleanup ──
 
 if [[ "$MODE" == "branch" ]]; then
     step "Cleaning up release branch"
@@ -214,14 +223,5 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}  webwrench v$VERSION released!${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════${NC}"
 echo ""
-echo "CI will run automatically on the push to main."
-echo ""
-echo "To publish to PyPI:"
-echo "  1. Go to https://github.com/deftio/webwrench/releases/new"
-echo "  2. Select tag v$VERSION"
-echo "  3. Title: webwrench v$VERSION"
-echo "  4. Auto-generate or write release notes"
-echo "  5. Publish — this triggers the PyPI publish workflow"
-echo ""
-echo "Or use gh CLI:"
-echo "  gh release create v$VERSION --title \"webwrench v$VERSION\" --generate-notes"
+echo "CI runs on push. Publish to PyPI triggers on the v$VERSION tag."
+echo "GitHub Release: https://github.com/deftio/webwrench/releases/tag/v$VERSION"
