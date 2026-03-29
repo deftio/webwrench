@@ -1,9 +1,11 @@
 # webwrench
 
 [![CI](https://github.com/deftio/webwrench/actions/workflows/ci.yml/badge.svg)](https://github.com/deftio/webwrench/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/webwrench.svg)](https://pypi.org/project/webwrench/)
-[![Python](https://img.shields.io/pypi/pyversions/webwrench.svg)](https://pypi.org/project/webwrench/)
-[![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE.txt)
+[![PyPI](https://img.shields.io/pypi/v/webwrench.svg?style=flat-square)](https://pypi.org/project/webwrench/)
+[![Python](https://img.shields.io/pypi/pyversions/webwrench.svg?style=flat-square)](https://pypi.org/project/webwrench/)
+[![Downloads](https://img.shields.io/pypi/dm/webwrench.svg?style=flat-square)](https://pypi.org/project/webwrench/)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://github.com/deftio/webwrench)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg?style=flat-square)](https://opensource.org/licenses/BSD-2-Clause)
 
 A Python library for building interactive web dashboards and self-contained HTML reports. It uses [bitwrench.js](https://github.com/deftio/bitwrench) for rendering and the bwserve protocol (SSE down, POST back) for live updates. No JavaScript required on your end, no build tools, no runtime dependencies.
 
