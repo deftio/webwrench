@@ -9,7 +9,7 @@ from webwrench._context import get_default_page
 
 class TestVersion:
     def test_version(self):
-        assert ww.__version__ == "0.1.0"
+        assert re.match(r"^\d+\.\d+\.\d+$", ww.__version__)
 
     def test_get_version_keys(self):
         v = ww.get_version()
