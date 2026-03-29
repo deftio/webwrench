@@ -1,6 +1,6 @@
 [project]
 name = "webwrench"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python UI framework for interactive web dashboards and self-contained HTML reports, powered by bitwrench.js"
 readme = "README.md"
 requires-python = ">=3.10"
