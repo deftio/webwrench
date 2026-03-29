@@ -208,17 +208,10 @@ ww.download('data.csv', content=csv_string)  # Trigger browser download
 ```bash
 git clone https://github.com/deftio/webwrench.git
 cd webwrench
-pip install -e ".[dev]"
+uv sync --dev
 
-# Run tests
-pytest
-
-# Run tests with coverage (100% required)
-pytest --cov=webwrench --cov-report=term-missing --cov-fail-under=100
-
-# Lint + security scan
-ruff check webwrench/
-bandit -r webwrench/ -c pyproject.toml
+# Preflight — lint, security, tests (100% coverage), build, install verify
+./scripts/prerelease.sh
 ```
 
 ### Releasing
@@ -229,25 +222,16 @@ bandit -r webwrench/ -c pyproject.toml
 ./scripts/release.sh 0.2.0
 ```
 
-This bumps the version, runs lint + tests + build, tags, and pushes.
-
 **Two-phase** (for bigger releases):
 
 ```bash
-# Phase 1: bump version + create release branch
-./scripts/start-release.sh 0.2.0
-
+./scripts/start-release.sh 0.2.0   # bump version + create release branch
 # ... develop, commit, iterate ...
-
-# Phase 2: validate, test, build, squash-merge to main, tag, push
-./scripts/release.sh
+./scripts/prerelease.sh             # validate everything (safe, no side effects)
+./scripts/release.sh                # ship it: merge, tag, push, GH release
 ```
 
-After either flow, create a GitHub Release to publish to PyPI:
-
-```bash
-gh release create v0.2.0 --title "webwrench v0.2.0" --generate-notes
-```
+`release.sh` runs all prerelease checks, then tags, pushes, and creates a GitHub Release. The CI publish pipeline handles PyPI automatically.
 
 ## License
 

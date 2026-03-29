@@ -1,33 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# release.sh — validate, test, build, tag, push, publish
+# release.sh — full release: prerelease checks + version bump + tag + push + GH release
 #
 # Two modes:
 #   From main:             ./scripts/release.sh 0.2.0
 #   From release branch:   ./scripts/release.sh
 #
-# Either way it will:
-#   1. Run linting (ruff) and security scan (bandit)
-#   2. Run full test suite with 100% coverage gate
-#   3. Build the wheel/sdist and check bundle size
-#   4. If on release branch: squash-merge into main
-#   5. Tag and push (CI + publish.yml handle PyPI)
+# Runs all prerelease checks first. If anything fails, nothing ships.
 
-# ── Helpers ──
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/_helpers.sh"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-step() { echo -e "\n${CYAN}▸ $1${NC}"; }
-ok()   { echo -e "  ${GREEN}✓ $1${NC}"; }
-fail() { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
-warn() { echo -e "  ${YELLOW}⚠ $1${NC}"; }
-
-# ── 1. Determine mode ──
+# ── 1. Determine mode + version ──
 
 step "Checking branch"
 BRANCH=$(git branch --show-current)
@@ -52,7 +37,13 @@ else
     fail "Must be on main or a release/v* branch (currently on '$BRANCH')"
 fi
 
-# ── 2. Version consistency ──
+# ── 2. Check tag doesn't already exist ──
+
+if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+    fail "Tag v$VERSION already exists"
+fi
+
+# ── 3. Version bump (if needed) ──
 
 step "Verifying version consistency"
 
@@ -71,7 +62,6 @@ print(m.group(1) if m else 'unknown')
 ")
 
 if [[ "$MODE" == "main" ]]; then
-    # On main: bump version if it doesn't match
     if [[ "$TOML_VERSION" != "$VERSION" || "$INIT_VERSION" != "$VERSION" ]]; then
         warn "Version mismatch — bumping to $VERSION"
         sed -i.bak "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml && rm -f pyproject.toml.bak
@@ -83,7 +73,6 @@ if [[ "$MODE" == "main" ]]; then
         ok "Already at $VERSION"
     fi
 else
-    # On release branch: versions must already match
     if [[ "$TOML_VERSION" != "$VERSION" ]]; then
         fail "pyproject.toml version ($TOML_VERSION) != branch version ($VERSION)"
     fi
@@ -94,7 +83,7 @@ else
     ok "__init__.py:    $INIT_VERSION"
 fi
 
-# ── 3. Clean working tree ──
+# ── 4. Clean working tree ──
 
 step "Checking working tree"
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -102,71 +91,13 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 ok "Clean"
 
-# ── 4. Lint ──
+# ── 5. Run prerelease checks (lint, security, tests, build, install) ──
 
-step "Running ruff lint"
-if uv run ruff check webwrench/; then
-    ok "Lint passed"
-else
-    fail "Lint failed"
-fi
+step "Running prerelease checks"
+echo ""
+"$SCRIPT_DIR/prerelease.sh"
 
-# ── 5. Security scan ──
-
-step "Running bandit security scan"
-if uv run bandit -r webwrench/ -c pyproject.toml -q; then
-    ok "Security scan passed"
-else
-    fail "Security scan failed"
-fi
-
-# ── 6. Tests ──
-
-step "Running test suite (100% coverage gate)"
-if uv run pytest --cov=webwrench --cov-report=term-missing --cov-fail-under=100 -q; then
-    ok "All tests passed with 100% coverage"
-else
-    fail "Tests failed or coverage below 100%"
-fi
-
-# ── 7. Build ──
-
-step "Building package"
-rm -rf dist/ build/
-if uv build; then
-    ok "Build succeeded"
-else
-    fail "Build failed"
-fi
-
-# Check wheel size (warn if > 2MB)
-WHEEL=$(ls dist/*.whl 2>/dev/null | head -1)
-if [[ -n "$WHEEL" ]]; then
-    SIZE=$(wc -c < "$WHEEL" | tr -d ' ')
-    SIZE_KB=$((SIZE / 1024))
-    if [[ $SIZE -gt 2097152 ]]; then
-        warn "Wheel is ${SIZE_KB}KB (> 2MB) — consider auditing bundled assets"
-    else
-        ok "Wheel size: ${SIZE_KB}KB"
-    fi
-fi
-
-# ── 8. Verify installable ──
-
-step "Verifying package installs"
-if uv pip install --quiet dist/*.whl 2>/dev/null; then
-    INSTALLED=$(uv run python -c "import webwrench; print(webwrench.__version__)")
-    uv pip uninstall webwrench > /dev/null 2>&1
-    if [[ "$INSTALLED" == "$VERSION" ]]; then
-        ok "Installed and verified version $INSTALLED"
-    else
-        fail "Installed version ($INSTALLED) != expected ($VERSION)"
-    fi
-else
-    warn "Could not verify install (non-fatal)"
-fi
-
-# ── 9. Merge (if on release branch) ──
+# ── 6. Merge (if on release branch) ──
 
 if [[ "$MODE" == "branch" ]]; then
     step "Squash-merging into main"
@@ -180,22 +111,19 @@ if [[ "$MODE" == "branch" ]]; then
     ok "Squash-merged to main"
 fi
 
-# ── 10. Tag ──
+# ── 7. Tag ──
 
 step "Tagging v$VERSION"
-if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-    fail "Tag v$VERSION already exists"
-fi
 git tag "v$VERSION"
 ok "Tag created: v$VERSION"
 
-# ── 11. Push ──
+# ── 8. Push ──
 
 step "Pushing main + tags"
 git push origin main --tags
 ok "Pushed"
 
-# ── 12. Create GitHub Release ──
+# ── 9. Create GitHub Release ──
 
 step "Creating GitHub Release"
 if gh release create "v$VERSION" --title "webwrench v$VERSION" --generate-notes; then
@@ -204,7 +132,7 @@ else
     warn "Could not create GitHub Release (create manually if needed)"
 fi
 
-# ── 13. Cleanup ──
+# ── 10. Cleanup ──
 
 if [[ "$MODE" == "branch" ]]; then
     step "Cleaning up release branch"
@@ -213,7 +141,6 @@ if [[ "$MODE" == "branch" ]]; then
     ok "Branch $BRANCH cleaned up"
 fi
 
-# Clean build artifacts
 rm -rf dist/ build/
 
 # ── Done ──
