@@ -24,7 +24,7 @@ from webwrench._context import (
 )
 from webwrench._shell import generate_shell_html
 from webwrench.options import options
-from webwrench.state import Session, SessionManager
+from webwrench.state import SessionManager
 
 _ASSETS_DIR = os.path.join(os.path.dirname(__file__), "_assets")
 

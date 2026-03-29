@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from webwrench._context import Element, Page, WidgetHandle, get_default_page
+from webwrench._context import Page, WidgetHandle, get_default_page
 
 
 CHART_TYPES = frozenset(

@@ -256,7 +256,7 @@ def toast(
 
     Returns the bwserve call message (not an element, since toasts are ephemeral).
     """
-    p = page or get_default_page()
+    _page = page or get_default_page()  # noqa: F841 – validates page exists
     return {
         "type": "call",
         "name": "wwToast",

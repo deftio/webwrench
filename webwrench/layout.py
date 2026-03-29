@@ -103,10 +103,8 @@ def columns(
         widths = [1] * spec
     else:
         widths = spec
-    total = sum(widths)
     cols: list[LayoutContainer] = []
     for w in widths:
-        frac = f"{w}fr"
         col = LayoutContainer(
             "div",
             attrs={"class": "ww-column", "style": f"flex:{w}"},

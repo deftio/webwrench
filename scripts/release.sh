@@ -56,14 +56,14 @@ fi
 
 step "Verifying version consistency"
 
-TOML_VERSION=$(python3 -c "
+TOML_VERSION=$(uv run python -c "
 import re, pathlib
 text = pathlib.Path('pyproject.toml').read_text()
 m = re.search(r'^version\s*=\s*\"([^\"]+)\"', text, re.M)
 print(m.group(1) if m else 'unknown')
 ")
 
-INIT_VERSION=$(python3 -c "
+INIT_VERSION=$(uv run python -c "
 import re, pathlib
 text = pathlib.Path('webwrench/__init__.py').read_text()
 m = re.search(r'^__version__\s*=\s*\"([^\"]+)\"', text, re.M)
@@ -105,7 +105,7 @@ ok "Clean"
 # ── 4. Lint ──
 
 step "Running ruff lint"
-if python3 -m ruff check webwrench/; then
+if uv run ruff check webwrench/; then
     ok "Lint passed"
 else
     fail "Lint failed"
@@ -114,7 +114,7 @@ fi
 # ── 5. Security scan ──
 
 step "Running bandit security scan"
-if python3 -m bandit -r webwrench/ -c pyproject.toml -q; then
+if uv run bandit -r webwrench/ -c pyproject.toml -q; then
     ok "Security scan passed"
 else
     fail "Security scan failed"
@@ -123,7 +123,7 @@ fi
 # ── 6. Tests ──
 
 step "Running test suite (100% coverage gate)"
-if python3 -m pytest --cov=webwrench --cov-report=term-missing --cov-fail-under=100 -q; then
+if uv run pytest --cov=webwrench --cov-report=term-missing --cov-fail-under=100 -q; then
     ok "All tests passed with 100% coverage"
 else
     fail "Tests failed or coverage below 100%"
@@ -133,7 +133,7 @@ fi
 
 step "Building package"
 rm -rf dist/ build/
-if python3 -m build; then
+if uv build; then
     ok "Build succeeded"
 else
     fail "Build failed"
@@ -154,9 +154,9 @@ fi
 # ── 8. Verify installable ──
 
 step "Verifying package installs"
-if pip install --quiet dist/*.whl 2>/dev/null; then
-    INSTALLED=$(python3 -c "import webwrench; print(webwrench.__version__)")
-    pip uninstall -y webwrench > /dev/null 2>&1
+if uv pip install --quiet dist/*.whl 2>/dev/null; then
+    INSTALLED=$(uv run python -c "import webwrench; print(webwrench.__version__)")
+    uv pip uninstall webwrench > /dev/null 2>&1
     if [[ "$INSTALLED" == "$VERSION" ]]; then
         ok "Installed and verified version $INSTALLED"
     else

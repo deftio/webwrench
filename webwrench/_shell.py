@@ -254,10 +254,10 @@ def _build_scripts(libs_used: set[str], mode: str) -> str:
         for lib in sorted(libs_used):
             if lib in CDN_URLS and lib not in ("bitwrench", "quikdown"):
                 tags.append(f'<script src="{CDN_URLS[lib]}"></script>')
-        tags.append(f'<script src="/ww/lib/bwclient.js"></script>')
+        tags.append('<script src="/ww/lib/bwclient.js"></script>')
     else:
-        tags.append(f'<script src="/ww/lib/bitwrench.min.js"></script>')
-        tags.append(f'<script src="/ww/lib/quikdown.min.js"></script>')
+        tags.append('<script src="/ww/lib/bitwrench.min.js"></script>')
+        tags.append('<script src="/ww/lib/quikdown.min.js"></script>')
         for lib in sorted(libs_used):
             filename = _lib_filename(lib)
             if filename:
@@ -265,7 +265,7 @@ def _build_scripts(libs_used: set[str], mode: str) -> str:
                     tags.append(f'<script src="{CDN_URLS[lib]}"></script>')
                 else:
                     tags.append(f'<script src="/ww/lib/{filename}"></script>')
-        tags.append(f'<script src="/ww/lib/bwclient.js"></script>')
+        tags.append('<script src="/ww/lib/bwclient.js"></script>')
     return "\n".join(tags)
 
 

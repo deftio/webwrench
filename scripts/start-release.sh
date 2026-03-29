@@ -23,7 +23,7 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 # Read current version from pyproject.toml
-CURRENT=$(python3 -c "
+CURRENT=$(uv run python -c "
 import re, pathlib
 text = pathlib.Path('pyproject.toml').read_text()
 m = re.search(r'^version\s*=\s*\"([^\"]+)\"', text, re.M)

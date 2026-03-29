@@ -36,18 +36,9 @@ Multi-page app:
 
 from __future__ import annotations
 
-from webwrench._context import Page, get_default_page, reset_default_page
-
-# Re-export the App class
+from webwrench._context import Page, get_default_page, reset_default_page  # noqa: F401
 from webwrench.app import App
-
-# Re-export options
-from webwrench.options import options
-
-# ---------------------------------------------------------------------------
-# Display elements
-# ---------------------------------------------------------------------------
-
+from webwrench.charts import chart, plot
 from webwrench.display import (
     code,
     divider,
@@ -63,11 +54,29 @@ from webwrench.display import (
     title,
     toast,
 )
-
-# ---------------------------------------------------------------------------
-# Input widgets
-# ---------------------------------------------------------------------------
-
+from webwrench.export import (
+    download,
+    export,
+    export_pdf,
+    export_string,
+    screenshot,
+)
+from webwrench.layout import (
+    accordion,
+    card,
+    columns,
+    grid,
+    modal,
+    nav,
+    sidebar,
+    tabs,
+)
+from webwrench.options import options
+from webwrench.server import serve
+from webwrench.theme import (
+    set_custom_css as _set_css,
+    set_theme as _set_theme,
+)
 from webwrench.widgets import (
     button,
     checkbox,
@@ -80,37 +89,6 @@ from webwrench.widgets import (
     select,
     slider,
     textarea,
-)
-
-# ---------------------------------------------------------------------------
-# Charts / visualization
-# ---------------------------------------------------------------------------
-
-from webwrench.charts import chart, plot
-
-# ---------------------------------------------------------------------------
-# Layout
-# ---------------------------------------------------------------------------
-
-from webwrench.layout import (
-    accordion,
-    card,
-    columns,
-    grid,
-    modal,
-    nav,
-    sidebar,
-    tabs,
-)
-
-# ---------------------------------------------------------------------------
-# Theme
-# ---------------------------------------------------------------------------
-
-from webwrench.theme import (
-    css_dict_to_string as _css_to_str,
-    set_custom_css as _set_css,
-    set_theme as _set_theme,
 )
 
 
@@ -143,29 +121,6 @@ def css(rules: dict) -> None:
         ww.css({'.my-card': {'border-radius': '12px'}})
     """
     _set_css(rules)
-
-
-# ---------------------------------------------------------------------------
-# Export / screenshot / download
-# ---------------------------------------------------------------------------
-
-from webwrench.export import (
-    download,
-    export,
-    export_pdf,
-    export_string,
-    screenshot,
-)
-
-# ---------------------------------------------------------------------------
-# Server
-# ---------------------------------------------------------------------------
-
-from webwrench.server import serve
-
-# ---------------------------------------------------------------------------
-# Version
-# ---------------------------------------------------------------------------
 
 __version__ = "0.1.0"
 

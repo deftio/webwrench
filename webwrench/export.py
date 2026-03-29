@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from webwrench._context import Page, get_active_session, get_default_page
+from webwrench._context import Page, get_default_page
 from webwrench._shell import generate_export_html
 from webwrench.taco import make_call_msg
 
