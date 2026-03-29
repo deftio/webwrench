@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Display API — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="display.html">Display</a>
+  <a href="widgets.html">Widgets</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">API</a> / Display</div>
+  <h1>Display API</h1>
+  <p>Display elements render read-only content on the page. All functions return an <code>Element</code> with an <code>.update(content)</code> method.</p>
+
+  <h2>ww.title(text)</h2>
+  <p>Page title rendered as an <code>&lt;h1&gt;</code>.</p>
+  <dl class="param-list">
+    <dt>text : str</dt><dd>The title text.</dd>
+  </dl>
+  <pre><code class="language-python">ww.title("Dashboard")</code></pre>
+
+  <h2>ww.heading(text, level=2)</h2>
+  <p>Section heading (<code>&lt;h2&gt;</code>&ndash;<code>&lt;h6&gt;</code>).</p>
+  <dl class="param-list">
+    <dt>text : str</dt><dd>Heading text.</dd>
+    <dt>level : int</dt><dd>Heading level, 2&ndash;6. Default <code>2</code>.</dd>
+  </dl>
+
+  <h2>ww.text(content)</h2>
+  <p>Plain text paragraph.</p>
+  <dl class="param-list">
+    <dt>content : str</dt><dd>Text content.</dd>
+  </dl>
+
+  <h2>ww.markdown(md_string)</h2>
+  <p>Render Markdown content.</p>
+  <dl class="param-list">
+    <dt>md_string : str</dt><dd>Markdown-formatted string.</dd>
+  </dl>
+
+  <h2>ww.code(code_string, lang="python")</h2>
+  <p>Syntax-highlighted code block.</p>
+  <dl class="param-list">
+    <dt>code_string : str</dt><dd>Source code.</dd>
+    <dt>lang : str</dt><dd>Language for highlighting. Default <code>"python"</code>.</dd>
+  </dl>
+
+  <h2>ww.html(raw_html, raw=False)</h2>
+  <p>Render raw HTML. When <code>raw=True</code>, content is inserted without sanitization.</p>
+  <dl class="param-list">
+    <dt>raw_html : str</dt><dd>HTML string.</dd>
+    <dt>raw : bool</dt><dd>Skip sanitization. Default <code>False</code>.</dd>
+  </dl>
+
+  <h2>ww.image(src, alt="", width=None)</h2>
+  <p>Display an image.</p>
+  <dl class="param-list">
+    <dt>src : str</dt><dd>Image URL or data URI.</dd>
+    <dt>alt : str</dt><dd>Alt text. Default <code>""</code>.</dd>
+    <dt>width : int | str | None</dt><dd>Width (pixels or CSS string).</dd>
+  </dl>
+
+  <h2>ww.divider()</h2>
+  <p>Horizontal rule separator. No parameters.</p>
+
+  <h2>ww.table(data, sortable=False, searchable=False, paginate=None)</h2>
+  <p>Render a data table. Accepts list-of-lists, list-of-dicts, or a pandas DataFrame.</p>
+  <dl class="param-list">
+    <dt>data</dt><dd>Table data.</dd>
+    <dt>sortable : bool</dt><dd>Enable column sorting. Default <code>False</code>.</dd>
+    <dt>searchable : bool</dt><dd>Enable search filter. Default <code>False</code>.</dd>
+    <dt>paginate : int | None</dt><dd>Rows per page. <code>None</code> disables pagination.</dd>
+  </dl>
+
+  <h2>ww.metric(label, value, delta=None, delta_color=None)</h2>
+  <p>KPI metric card.</p>
+  <dl class="param-list">
+    <dt>label : str</dt><dd>Metric label.</dd>
+    <dt>value : str</dt><dd>Metric value.</dd>
+    <dt>delta : str | None</dt><dd>Change indicator (e.g. <code>"+12%"</code>).</dd>
+    <dt>delta_color : str | None</dt><dd>Color for delta text.</dd>
+  </dl>
+
+  <h2>ww.json(data, collapsed=1)</h2>
+  <p>Interactive JSON tree viewer.</p>
+  <dl class="param-list">
+    <dt>data</dt><dd>JSON-serializable data.</dd>
+    <dt>collapsed : int</dt><dd>Default nesting depth to collapse. Default <code>1</code>.</dd>
+  </dl>
+
+  <h2>ww.progress(value=0, max_val=100)</h2>
+  <p>Progress bar. Returns a handle with <code>.update(n)</code>.</p>
+  <dl class="param-list">
+    <dt>value : int</dt><dd>Current value. Default <code>0</code>.</dd>
+    <dt>max_val : int</dt><dd>Maximum value. Default <code>100</code>.</dd>
+  </dl>
+
+  <h2>ww.toast(message, type="info", duration=3000)</h2>
+  <p>Transient notification toast. Returns a bwserve call message (not an Element).</p>
+  <dl class="param-list">
+    <dt>message : str</dt><dd>Toast text.</dd>
+    <dt>type : str</dt><dd><code>"info"</code>, <code>"success"</code>, <code>"warning"</code>, or <code>"error"</code>.</dd>
+    <dt>duration : int</dt><dd>Display time in ms. Default <code>3000</code>.</dd>
+  </dl>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

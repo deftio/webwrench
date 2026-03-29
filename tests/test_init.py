@@ -1,5 +1,8 @@
 """Tests for webwrench.__init__ -- public API surface."""
 
+import platform
+import re
+
 import webwrench as ww
 from webwrench._context import get_default_page
 
@@ -7,6 +10,22 @@ from webwrench._context import get_default_page
 class TestVersion:
     def test_version(self):
         assert ww.__version__ == "0.1.0"
+
+    def test_get_version_keys(self):
+        v = ww.get_version()
+        assert set(v.keys()) == {"webwrench", "python", "bitwrench", "platform"}
+
+    def test_get_version_webwrench(self):
+        v = ww.get_version()
+        assert v["webwrench"] == ww.__version__
+
+    def test_get_version_python(self):
+        v = ww.get_version()
+        assert v["python"] == platform.python_version()
+
+    def test_get_version_bitwrench(self):
+        v = ww.get_version()
+        assert re.match(r"\d+\.\d+\.\d+", v["bitwrench"])
 
 
 class TestAllExports:

@@ -98,6 +98,29 @@ class TestMakeMessages:
         assert msg["name"] == "toggleStyles"
 
 
+class TestSetThemeSendsSSE:
+    def test_sends_load_styles_when_session_active(self):
+        from webwrench._context import set_active_session, restore_active_session
+        from webwrench.state import Session
+
+        page = Page()
+        session = Session("test-dyn")
+        token = set_active_session(session)
+        try:
+            set_theme(page, name="ocean")
+            messages = session.drain_messages()
+            assert len(messages) == 1
+            assert messages[0]["type"] == "call"
+            assert messages[0]["name"] == "loadStyles"
+        finally:
+            restore_active_session(token)
+
+    def test_no_message_without_session(self):
+        page = Page()
+        set_theme(page, name="dark")
+        # No session active, so no messages to drain
+
+
 class TestSetCustomCss:
     def test_set(self):
         page = Page()

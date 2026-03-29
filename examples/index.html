@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>webwrench Examples</title>
+<style>
+  :root {
+    --bg: #f8fafb;
+    --surface: #ffffff;
+    --text: #1a2b3c;
+    --muted: #5a6a7a;
+    --primary: #006666;
+    --border: #d0dde8;
+    --accent-bg: #e6f4f4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.5rem; }
+  h2 { font-size: 1.3rem; margin: 2rem 0 0.75rem; border-bottom: 2px solid var(--border); padding-bottom: 0.35rem; }
+  h3 { font-size: 1rem; margin: 1.5rem 0 0.5rem; color: var(--muted); }
+  pre {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 0.75rem 1rem; border-radius: 6px; overflow-x: auto;
+    font-size: 0.9rem;
+  }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+    transition: box-shadow 0.15s;
+  }
+  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .card-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.5rem; }
+  .card-num {
+    display: inline-block; background: var(--primary); color: #fff;
+    font-size: 0.8rem; font-weight: 700; width: 2rem; height: 2rem;
+    line-height: 2rem; text-align: center; border-radius: 50%; flex-shrink: 0;
+  }
+  .card-title { font-weight: 600; font-size: 1.05rem; }
+  .card-file { font-size: 0.85rem; color: var(--muted); font-family: monospace; }
+  .card-desc { color: var(--muted); font-size: 0.95rem; }
+  .tag {
+    display: inline-block; background: var(--accent-bg); color: var(--primary);
+    font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem;
+    border-radius: 4px; margin-right: 0.35rem; margin-top: 0.5rem;
+  }
+  .path-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+  .path-table th { text-align: left; font-weight: 600; padding: 0.4rem 0.75rem;
+    background: var(--accent-bg); }
+  .path-table td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border); }
+  .path-table tr:last-child td { border-bottom: none; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>webwrench Examples</h1>
+<p class="subtitle">
+  Sixteen progressively complex examples covering every major feature of the
+  framework &mdash; from a one-liner Hello&nbsp;World to multi-page apps with
+  live updates, theming, and modal dialogs.
+</p>
+
+<h2>Running an example</h2>
+<pre><code>python examples/01_hello_world.py
+# then open http://localhost:6502</code></pre>
+<p style="margin-top:0.5rem;color:var(--muted);">
+  Example&nbsp;08 exports a static HTML file instead of starting a server.
+</p>
+
+<hr>
+
+<h2>All examples</h2>
+
+<!-- 01 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">01</span>
+    <span class="card-title">Hello World</span>
+    <span class="card-file">01_hello_world.py</span>
+  </div>
+  <div class="card-desc">
+    The minimal webwrench app. Adds a title, paragraph, and markdown block,
+    then calls <code>ww.serve()</code>. Establishes the <strong>script-mode</strong>
+    pattern you will use in every subsequent example.
+  </div>
+  <span class="tag">script mode</span>
+  <span class="tag">title</span>
+  <span class="tag">text</span>
+  <span class="tag">serve</span>
+</div>
+
+<!-- 02 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">02</span>
+    <span class="card-title">Interactive Chart</span>
+    <span class="card-file">02_interactive_chart.py</span>
+  </div>
+  <div class="card-desc">
+    A bar chart and metric driven by a slider. Introduces
+    <strong>callbacks</strong> (<code>@slider.on_change</code>) and demonstrates
+    real-time multi-widget updates over SSE.
+  </div>
+  <span class="tag">chart</span>
+  <span class="tag">slider</span>
+  <span class="tag">callback</span>
+  <span class="tag">SSE</span>
+</div>
+
+<!-- 03 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">03</span>
+    <span class="card-title">Multiple Chart Types</span>
+    <span class="card-file">03_multi_chart.py</span>
+  </div>
+  <div class="card-desc">
+    Bar, line, and pie charts side-by-side in a three-column layout, all sharing
+    the same quarterly-revenue dataset. Uses <strong>themes</strong>,
+    <strong>metric cards</strong>, <strong>dividers</strong>, and a summary
+    <strong>data table</strong>.
+  </div>
+  <span class="tag">columns</span>
+  <span class="tag">chart</span>
+  <span class="tag">metric</span>
+  <span class="tag">card</span>
+  <span class="tag">theme</span>
+  <span class="tag">table</span>
+</div>
+
+<!-- 04 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">04</span>
+    <span class="card-title">Dashboard Layout</span>
+    <span class="card-file">04_dashboard.py</span>
+  </div>
+  <div class="card-desc">
+    A structured dashboard with a KPI metrics row at the top and a two-column body
+    containing a chart and a table. Shows <strong>proportional column sizing</strong>
+    (<code>[2, 1]</code>).
+  </div>
+  <span class="tag">columns</span>
+  <span class="tag">metric</span>
+  <span class="tag">chart</span>
+  <span class="tag">table</span>
+</div>
+
+<!-- 05 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">05</span>
+    <span class="card-title">Form Widgets Showcase</span>
+    <span class="card-file">05_form_widgets.py</span>
+  </div>
+  <div class="card-desc">
+    Every available input widget: text, textarea, slider, select, radio, checkbox,
+    number, date picker, colour picker, and file upload. Widgets are grouped into
+    <strong>cards</strong> and columns, with a <strong>submit button</strong> that
+    fires a toast notification.
+  </div>
+  <span class="tag">widgets</span>
+  <span class="tag">card</span>
+  <span class="tag">button</span>
+  <span class="tag">toast</span>
+</div>
+
+<!-- 06 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">06</span>
+    <span class="card-title">Data Table</span>
+    <span class="card-file">06_data_table.py</span>
+  </div>
+  <div class="card-desc">
+    A sortable, searchable, paginated employee directory. Includes
+    <strong>summary metrics</strong> (headcount, average salary) and a
+    <strong>department bar chart</strong> above the full table.
+  </div>
+  <span class="tag">table</span>
+  <span class="tag">sortable</span>
+  <span class="tag">searchable</span>
+  <span class="tag">paginate</span>
+  <span class="tag">metric</span>
+</div>
+
+<!-- 07 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">07</span>
+    <span class="card-title">Theming</span>
+    <span class="card-file">07_theming.py</span>
+  </div>
+  <div class="card-desc">
+    Dynamic theme switching between <em>light</em>, <em>dark</em>, <em>ocean</em>,
+    and <em>forest</em> presets via a dropdown. Shows how a single
+    <code>ww.theme()</code> call restyles every component on the page.
+  </div>
+  <span class="tag">theme</span>
+  <span class="tag">select</span>
+  <span class="tag">callback</span>
+</div>
+
+<!-- 08 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">08</span>
+    <span class="card-title">Static Export</span>
+    <span class="card-file">08_static_export.py</span>
+  </div>
+  <div class="card-desc">
+    Builds a quarterly report with charts, metrics, and a table, then writes a
+    <strong>self-contained HTML file</strong> via <code>ww.export()</code>. No
+    server needed &mdash; open the output directly in a browser.
+  </div>
+  <span class="tag">export</span>
+  <span class="tag">static</span>
+  <span class="tag">chart</span>
+  <span class="tag">table</span>
+</div>
+
+<!-- 09 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">09</span>
+    <span class="card-title">Multi-Page App</span>
+    <span class="card-file">09_multi_page_app.py</span>
+  </div>
+  <div class="card-desc">
+    Uses <strong>App mode</strong> with <code>@app.page()</code> decorators to
+    register three routes (home, about, contact) with <code>ww.nav()</code> for
+    cross-page navigation. Each handler receives a <code>PageContext</code>
+    with the same API as module-level functions.
+  </div>
+  <span class="tag">App mode</span>
+  <span class="tag">routing</span>
+  <span class="tag">PageContext</span>
+</div>
+
+<!-- 10 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">10</span>
+    <span class="card-title">Tabs &amp; Accordion</span>
+    <span class="card-file">10_tabs_and_accordion.py</span>
+  </div>
+  <div class="card-desc">
+    Tabbed navigation with <code>ww.tabs()</code> and collapsible sections with
+    <code>ww.accordion()</code>. Shows how <strong>context managers</strong>
+    organise content within each pane or section.
+  </div>
+  <span class="tag">tabs</span>
+  <span class="tag">accordion</span>
+  <span class="tag">context manager</span>
+</div>
+
+<!-- 11 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">11</span>
+    <span class="card-title">Sidebar Navigation</span>
+    <span class="card-file">11_sidebar_nav.py</span>
+  </div>
+  <div class="card-desc">
+    Classic <strong>sidebar + main-content</strong> layout using
+    <code>ww.sidebar()</code> as a context manager and <code>ww.nav()</code>
+    for navigation links.
+  </div>
+  <span class="tag">sidebar</span>
+  <span class="tag">nav</span>
+  <span class="tag">layout</span>
+</div>
+
+<!-- 12 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">12</span>
+    <span class="card-title">Multiple Datasets</span>
+    <span class="card-file">12_chart_datasets.py</span>
+  </div>
+  <div class="card-desc">
+    Overlays three product-revenue data series on a single chart using the
+    <code>datasets</code> parameter. Includes summary metrics and a chart-type
+    selector dropdown.
+  </div>
+  <span class="tag">chart</span>
+  <span class="tag">datasets</span>
+  <span class="tag">multi-series</span>
+</div>
+
+<!-- 13 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">13</span>
+    <span class="card-title">DataFrame-style Plot</span>
+    <span class="card-file">13_dataframe_plot.py</span>
+  </div>
+  <div class="card-desc">
+    Uses <code>ww.plot()</code> with dict-based data and <code>x</code> /
+    <code>y</code> column specifications &mdash; pandas-like plotting without
+    the dependency.
+  </div>
+  <span class="tag">plot</span>
+  <span class="tag">DataFrame</span>
+  <span class="tag">x/y columns</span>
+</div>
+
+<!-- 14 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">14</span>
+    <span class="card-title">Live Updates</span>
+    <span class="card-file">14_live_updates.py</span>
+  </div>
+  <div class="card-desc">
+    A progress bar, click counter, and status text that advance on each button
+    click. Demonstrates <code>widget.update()</code> for in-place DOM patches
+    and the callback &rarr; SSE &rarr; DOM update cycle.
+  </div>
+  <span class="tag">progress</span>
+  <span class="tag">button</span>
+  <span class="tag">update</span>
+  <span class="tag">toast</span>
+</div>
+
+<!-- 15 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">15</span>
+    <span class="card-title">Grid Layout</span>
+    <span class="card-file">15_grid_layout.py</span>
+  </div>
+  <div class="card-desc">
+    Uses <code>ww.grid("1fr 1fr 1fr")</code> for a CSS Grid containing nested
+    <strong>cards</strong> with metrics, charts, and text.
+  </div>
+  <span class="tag">grid</span>
+  <span class="tag">card</span>
+  <span class="tag">responsive</span>
+</div>
+
+<!-- 16 -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-num">16</span>
+    <span class="card-title">Modal Dialog</span>
+    <span class="card-file">16_modal_dialog.py</span>
+  </div>
+  <div class="card-desc">
+    A <strong>modal dialog</strong> with a nested feedback form (textarea,
+    rating slider, submit button). Demonstrates <code>ww.modal()</code> as a
+    context manager with a toast-triggering callback.
+  </div>
+  <span class="tag">modal</span>
+  <span class="tag">button</span>
+  <span class="tag">form</span>
+</div>
+
+<hr>
+
+<h2>Learning path</h2>
+<p style="color:var(--muted);margin-bottom:0.75rem;">
+  If you are new to webwrench, work through the examples in this order:
+</p>
+<table class="path-table">
+  <tr><th>Stage</th><th>Examples</th><th>Focus</th></tr>
+  <tr><td>1. Basics</td><td>01 &ndash; 03</td><td>Output elements, charts, columns, themes</td></tr>
+  <tr><td>2. Layouts</td><td>04, 10, 11, 15</td><td>Dashboards, tabs, sidebars, grids</td></tr>
+  <tr><td>3. Interactivity</td><td>02, 05, 14, 16</td><td>Widgets, callbacks, live updates, modals</td></tr>
+  <tr><td>4. Data</td><td>06, 12, 13</td><td>Tables, multi-dataset charts, DataFrame plots</td></tr>
+  <tr><td>5. Advanced</td><td>07 &ndash; 09</td><td>Theming, static export, multi-page apps</td></tr>
+</table>
+
+</div>
+</body>
+</html>

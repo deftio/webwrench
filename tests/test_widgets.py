@@ -42,7 +42,13 @@ class TestButton:
     def test_attrs(self):
         b = button("Z")
         assert "bw_btn" in b.attrs["class"]
+        assert "bw_primary" in b.attrs["class"]
         assert b.attrs["type"] == "button"
+
+    def test_variant(self):
+        b = button("OK", variant="success")
+        assert "bw_success" in b.attrs["class"]
+        assert "bw_primary" not in b.attrs["class"]
 
 
 class TestInput:

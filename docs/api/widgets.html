@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Widgets API — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="display.html">Display</a>
+  <a href="widgets.html">Widgets</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">API</a> / Widgets</div>
+  <h1>Widgets API</h1>
+  <p>All widget functions return a <code>WidgetHandle</code> with:</p>
+  <ul>
+    <li><code>.value</code> &mdash; current widget value</li>
+    <li><code>.on_change(callback)</code> &mdash; register a callback (also works as a decorator)</li>
+    <li><code>.update(value)</code> &mdash; programmatically set the value</li>
+  </ul>
+
+  <h2>ww.button(label, on_click=None)</h2>
+  <p>Clickable button. Use <code>.on_click</code> decorator or pass <code>on_click</code> directly.</p>
+  <pre><code class="language-python">btn = ww.button("Click me")
+
+@btn.on_click
+def clicked():
+    print("Button was clicked!")</code></pre>
+
+  <h2>ww.input(label, placeholder="", value="")</h2>
+  <p>Single-line text input.</p>
+  <pre><code class="language-python">name = ww.input("Your name", placeholder="Enter name")</code></pre>
+
+  <h2>ww.textarea(label, rows=4, value="")</h2>
+  <p>Multi-line text area.</p>
+
+  <h2>ww.slider(label, min=0, max=100, value=50, step=1)</h2>
+  <p>Numeric slider.</p>
+  <pre><code class="language-python">s = ww.slider("Temperature", min=0, max=100, value=20)
+
+@s.on_change
+def on_temp(val):
+    print(f"Temperature: {val}")</code></pre>
+
+  <h2>ww.select(label, options, value=None)</h2>
+  <p>Dropdown select.</p>
+  <dl class="param-list">
+    <dt>options : list[str]</dt><dd>Available choices.</dd>
+    <dt>value : str | None</dt><dd>Initial selection. Defaults to first option.</dd>
+  </dl>
+  <pre><code class="language-python">color = ww.select("Color", ["Red", "Green", "Blue"])</code></pre>
+
+  <h2>ww.checkbox(label, value=False)</h2>
+  <p>Boolean checkbox.</p>
+
+  <h2>ww.radio(label, options, value=None)</h2>
+  <p>Radio button group.</p>
+
+  <h2>ww.number(label, min=0, max=100, step=1, value=0)</h2>
+  <p>Numeric input with spinner.</p>
+
+  <h2>ww.date_picker(label, value="")</h2>
+  <p>Date input field.</p>
+
+  <h2>ww.color_picker(label, value="#3366cc")</h2>
+  <p>Color picker input.</p>
+
+  <h2>ww.file_upload(label, accept="")</h2>
+  <p>File upload widget.</p>
+  <dl class="param-list">
+    <dt>accept : str</dt><dd>MIME type filter (e.g. <code>".csv,.json"</code>).</dd>
+  </dl>
+
+  <h2>Callback Pattern</h2>
+  <p>All widgets support the same callback pattern:</p>
+  <pre><code class="language-python">widget = ww.slider("Value", min=0, max=100, value=50)
+
+# As decorator
+@widget.on_change
+def handler(value):
+    print(f"New value: {value}")
+
+# Or pass directly
+def my_handler(value):
+    print(f"New value: {value}")
+widget.on_change(my_handler)</code></pre>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

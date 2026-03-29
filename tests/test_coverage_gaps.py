@@ -335,9 +335,9 @@ class TestPrintBanner:
     @pytest.mark.asyncio
     async def test_print_banner_default(self, capsys):
         """Lines 332-333: Banner prints correct host."""
-        await _print_banner("0.0.0.0", 8080)
+        await _print_banner("0.0.0.0", 6502)
         captured = capsys.readouterr()
-        assert "localhost:8080" in captured.out
+        assert "localhost:6502" in captured.out
 
     @pytest.mark.asyncio
     async def test_print_banner_custom_host(self, capsys):

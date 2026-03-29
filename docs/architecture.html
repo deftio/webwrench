@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Architecture — webwrench</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="index.html">Home</a>
+  <a href="getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="guides/script-mode.html">Script Mode</a>
+  <a href="guides/app-mode.html">App Mode</a>
+  <a href="guides/charts.html">Charts</a>
+  <a href="guides/layout.html">Layout</a>
+  <a href="guides/theming.html">Theming</a>
+  <a href="guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="api/display.html">Display</a>
+  <a href="api/widgets.html">Widgets</a>
+  <a href="api/charts.html">Charts</a>
+  <a href="api/layout.html">Layout</a>
+  <a href="api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="architecture.html">Architecture</a>
+  <a href="examples.html">Examples</a>
+  <a href="migration/from-streamlit.html">From Streamlit</a>
+  <a href="migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="index.html">Home</a> / Architecture</div>
+  <h1>Architecture</h1>
+
+  <h2>Core Principle</h2>
+  <p><a href="https://github.com/deftio/bitwrench">bitwrench.js</a> <strong>is</strong> the frontend. webwrench does not have its own JavaScript or CSS &mdash; it sends instructions that bitwrench renders.</p>
+
+  <h2>Data Flow</h2>
+  <div style="overflow-x:auto">
+    <svg viewBox="0 0 700 120" style="max-width:700px;width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#0077b6"/></marker>
+      </defs>
+      <rect x="10" y="35" width="110" height="50" rx="6" fill="#e8f4f8" stroke="#0077b6" stroke-width="1.5"/>
+      <text x="65" y="55" text-anchor="middle" font-size="11" fill="#333">Python Code</text>
+      <text x="65" y="70" text-anchor="middle" font-size="9" fill="#666">ww.title() etc.</text>
+
+      <line x1="120" y1="60" x2="165" y2="60" stroke="#0077b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <rect x="170" y="35" width="100" height="50" rx="6" fill="#e8f4f8" stroke="#0077b6" stroke-width="1.5"/>
+      <text x="220" y="55" text-anchor="middle" font-size="11" fill="#333">Element</text>
+      <text x="220" y="70" text-anchor="middle" font-size="9" fill="#666">TACO dict</text>
+
+      <line x1="270" y1="60" x2="315" y2="60" stroke="#0077b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <rect x="320" y="35" width="100" height="50" rx="6" fill="#e8f4f8" stroke="#0077b6" stroke-width="1.5"/>
+      <text x="370" y="55" text-anchor="middle" font-size="11" fill="#333">JSON</text>
+      <text x="370" y="70" text-anchor="middle" font-size="9" fill="#666">over SSE</text>
+
+      <line x1="420" y1="60" x2="465" y2="60" stroke="#0077b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <rect x="470" y="35" width="100" height="50" rx="6" fill="#caf0f8" stroke="#0077b6" stroke-width="1.5"/>
+      <text x="520" y="55" text-anchor="middle" font-size="11" fill="#333">bitwrench</text>
+      <text x="520" y="70" text-anchor="middle" font-size="9" fill="#666">renders DOM</text>
+
+      <line x1="570" y1="60" x2="615" y2="60" stroke="#0077b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <rect x="620" y="35" width="70" height="50" rx="6" fill="#caf0f8" stroke="#0077b6" stroke-width="1.5"/>
+      <text x="655" y="55" text-anchor="middle" font-size="11" fill="#333">Browser</text>
+      <text x="655" y="70" text-anchor="middle" font-size="9" fill="#666">DOM</text>
+    </svg>
+  </div>
+
+  <h2>TACO Format</h2>
+  <p>Every UI element is represented as a TACO dict:</p>
+  <pre><code class="language-python">{
+    "t": "div",            # Tag
+    "a": {"class": "..."},  # Attributes
+    "c": "Hello",           # Content
+    "o": {"id": "el-1"}     # Options (bwserve metadata)
+}</code></pre>
+  <p>TACO stands for <strong>T</strong>ag, <strong>A</strong>ttributes, <strong>C</strong>ontent, <strong>O</strong>ptions. This is the wire format between Python and bitwrench.</p>
+
+  <h2>bwserve Protocol</h2>
+
+  <h3>Server → Browser (SSE)</h3>
+  <p>The server sends JSON messages over Server-Sent Events. Message types:</p>
+  <table class="doc-table">
+    <thead><tr><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>init</code></td><td>Initial page load &mdash; full element tree</td></tr>
+      <tr><td><code>patch</code></td><td>Update a specific element by ID</td></tr>
+      <tr><td><code>call</code></td><td>Invoke a bitwrench function (e.g. <code>bw.loadStyles</code>)</td></tr>
+      <tr><td><code>remove</code></td><td>Remove an element from the DOM</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Browser → Server (POST)</h3>
+  <p>User interactions (button clicks, slider changes) are sent as POST requests with a JSON payload containing the widget ID, event type, and new value. The server dispatches these to registered callbacks.</p>
+
+  <h2>Session Management</h2>
+  <p>Each browser tab gets a unique session (via client ID). Sessions hold:</p>
+  <ul>
+    <li><strong>Widget state</strong> &mdash; current values of all widgets</li>
+    <li><strong>User state</strong> &mdash; <code>SessionState</code> object for custom data</li>
+    <li><strong>Message queue</strong> &mdash; outbound SSE messages</li>
+  </ul>
+
+  <div style="overflow-x:auto">
+    <svg viewBox="0 0 500 160" style="max-width:500px;width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="200" height="140" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="110" y="30" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">Python Server</text>
+
+      <rect x="25" y="40" width="80" height="30" rx="4" fill="#e8f4f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="65" y="59" text-anchor="middle" font-size="9" fill="#333">SessionMgr</text>
+
+      <rect x="115" y="40" width="80" height="30" rx="4" fill="#e8f4f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="155" y="59" text-anchor="middle" font-size="9" fill="#333">Page</text>
+
+      <rect x="25" y="80" width="80" height="30" rx="4" fill="#e8f4f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="65" y="99" text-anchor="middle" font-size="9" fill="#333">Callbacks</text>
+
+      <rect x="115" y="80" width="80" height="30" rx="4" fill="#e8f4f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="155" y="99" text-anchor="middle" font-size="9" fill="#333">Elements</text>
+
+      <rect x="115" y="115" width="80" height="25" rx="4" fill="#e8f4f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="155" y="132" text-anchor="middle" font-size="9" fill="#333">Context Vars</text>
+
+      <rect x="290" y="10" width="200" height="140" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="390" y="30" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">Browser</text>
+
+      <rect x="305" y="40" width="80" height="30" rx="4" fill="#caf0f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="345" y="59" text-anchor="middle" font-size="9" fill="#333">bitwrench</text>
+
+      <rect x="395" y="40" width="80" height="30" rx="4" fill="#caf0f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="435" y="59" text-anchor="middle" font-size="9" fill="#333">Chart.js</text>
+
+      <rect x="305" y="80" width="170" height="30" rx="4" fill="#caf0f8" stroke="#0077b6" stroke-width="1"/>
+      <text x="390" y="99" text-anchor="middle" font-size="9" fill="#333">DOM (rendered UI)</text>
+
+      <line x1="210" y1="50" x2="285" y2="50" stroke="#0077b6" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="248" y="44" text-anchor="middle" font-size="8" fill="#666">SSE</text>
+
+      <line x1="285" y1="70" x2="210" y2="70" stroke="#e67e22" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="248" y="82" text-anchor="middle" font-size="8" fill="#666">POST</text>
+    </svg>
+  </div>
+
+  <h2>Module Structure</h2>
+  <table class="doc-table">
+    <thead><tr><th>Module</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>taco.py</code></td><td>TACO dict creation and element building</td></tr>
+      <tr><td><code>_context.py</code></td><td>Page, Element, WidgetHandle, default page management</td></tr>
+      <tr><td><code>display.py</code></td><td>Display element functions (title, text, table, etc.)</td></tr>
+      <tr><td><code>widgets.py</code></td><td>Input widget functions (slider, button, select, etc.)</td></tr>
+      <tr><td><code>charts.py</code></td><td>Chart.js integration (chart, plot)</td></tr>
+      <tr><td><code>layout.py</code></td><td>Layout containers (columns, tabs, grid, etc.)</td></tr>
+      <tr><td><code>theme.py</code></td><td>Theme presets and CSS generation</td></tr>
+      <tr><td><code>export.py</code></td><td>Static HTML export</td></tr>
+      <tr><td><code>state.py</code></td><td>Session, SessionState, SessionManager</td></tr>
+      <tr><td><code>server.py</code></td><td>HTTP server with SSE + POST handling</td></tr>
+      <tr><td><code>app.py</code></td><td>Multi-page App, PageContext, routing</td></tr>
+      <tr><td><code>options.py</code></td><td>Global configuration options</td></tr>
+      <tr><td><code>_shell.py</code></td><td>HTML shell template for served pages</td></tr>
+      <tr><td><code>_assets/</code></td><td>Bundled bitwrench.js and Chart.js</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Design Principles</h2>
+  <ul>
+    <li><strong>bitwrench is the frontend</strong> &mdash; no custom JS or CSS in webwrench</li>
+    <li><strong>TACO is the wire format</strong> &mdash; everything is a dict</li>
+    <li><strong>Surgical updates</strong> &mdash; only changed elements are patched, no full reruns</li>
+    <li><strong>Zero dependencies</strong> &mdash; pure Python stdlib + bundled JS</li>
+    <li><strong>Context variables</strong> &mdash; per-session dispatch without global state</li>
+  </ul>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

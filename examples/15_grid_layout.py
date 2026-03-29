@@ -1,15 +1,33 @@
 """15 - Grid Layout with Cards
 
-Uses ww.grid() and ww.card() to arrange content in a CSS Grid.
-Each card contains a metric, a small chart, or descriptive text.
+Uses ww.grid("1fr 1fr 1fr") to arrange cards in a CSS Grid.
+The template string maps directly to grid-template-columns, so
+"1fr 1fr 1fr" gives three equal-width columns.
+
+Concepts: ww.grid(), ww.card(), ww.metric(), ww.chart(),
+          CSS Grid via grid-template-columns.
 
 Run: python examples/15_grid_layout.py
 """
 
 import webwrench as ww
 
-ww.title("Grid Layout with Cards")
-ww.text("A responsive grid of cards showing key business metrics and charts.")
+ww.theme("ocean")
+
+# -- Header --
+ww.title("Grid Layout")
+ww.text(
+    "ww.grid('1fr 1fr 1fr') creates a CSS Grid container with three "
+    "equal-width columns. The string maps directly to the CSS "
+    "grid-template-columns property. Cards placed inside flow left-to-right, "
+    "wrapping to the next row automatically."
+)
+ww.code('with ww.grid("1fr 1fr 1fr"):', lang="python")
+
+ww.divider()
+
+# -- 3-column grid --
+ww.heading("Business Dashboard", level=2)
 
 with ww.grid("1fr 1fr 1fr"):
 

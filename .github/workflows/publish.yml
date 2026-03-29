@@ -11,6 +11,7 @@ jobs:
   publish:
     needs: ci
     runs-on: ubuntu-latest
+    if: github.event.release.target_commitish == 'main'
     environment: pypi
     permissions:
       id-token: write
@@ -25,6 +26,26 @@ jobs:
 
       - name: Install build tools
         run: pip install build
+
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION=$(python -c "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          TAG="${{ github.ref_name }}"
+          TAG_VERSION="${TAG#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: $PKG_VERSION"
+
+      - name: Verify release is from main
+        run: |
+          COMMIT="${{ github.sha }}"
+          if ! git merge-base --is-ancestor "$COMMIT" origin/main 2>/dev/null; then
+            echo "::error::Release must be from the main branch"
+            exit 1
+          fi
+          echo "Release commit is on main"
 
       - name: Build package
         run: python -m build

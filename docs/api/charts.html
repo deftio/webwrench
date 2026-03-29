@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Charts API — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="display.html">Display</a>
+  <a href="widgets.html">Widgets</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">API</a> / Charts</div>
+  <h1>Charts API</h1>
+
+  <h2>ww.chart()</h2>
+  <pre><code class="language-python">ww.chart(
+    data=None,
+    type="bar",
+    labels=None,
+    title=None,
+    options=None,
+    datasets=None,
+    x=None,
+    y=None,
+) -> ChartHandle</code></pre>
+
+  <dl class="param-list">
+    <dt>data</dt><dd>List of numbers, list-of-lists, dict, or pandas DataFrame.</dd>
+    <dt>type : str</dt><dd>Chart type: <code>"bar"</code>, <code>"line"</code>, <code>"pie"</code>, <code>"doughnut"</code>, <code>"radar"</code>, <code>"scatter"</code>, <code>"bubble"</code>, <code>"polarArea"</code>.</dd>
+    <dt>labels : list[str] | None</dt><dd>X-axis labels.</dd>
+    <dt>title : str | None</dt><dd>Chart title.</dd>
+    <dt>options : dict | None</dt><dd>Raw Chart.js options object.</dd>
+    <dt>datasets : list[dict] | None</dt><dd>Multiple dataset definitions. Each dict has <code>"label"</code> and <code>"data"</code> keys.</dd>
+    <dt>x : str | None</dt><dd>Column name for x-axis (when data is a dict or DataFrame).</dd>
+    <dt>y : str | list | None</dt><dd>Column name(s) for y-axis.</dd>
+  </dl>
+
+  <p>Returns a <code>ChartHandle</code> with:</p>
+  <ul>
+    <li><code>.update(data)</code> &mdash; replace chart data</li>
+  </ul>
+
+  <h3>Examples</h3>
+  <pre><code class="language-python"># Simple bar chart
+ww.chart([10, 20, 30], type="bar", labels=["A", "B", "C"])
+
+# Line chart with title
+ww.chart([5, 10, 8, 15], type="line", labels=["W1", "W2", "W3", "W4"], title="Trend")
+
+# Pie chart
+ww.chart([40, 30, 20, 10], type="pie", labels=["Chrome", "Firefox", "Safari", "Edge"])
+
+# Multiple datasets
+ww.chart(
+    datasets=[
+        {"label": "2024", "data": [10, 20, 30]},
+        {"label": "2025", "data": [15, 25, 35]},
+    ],
+    type="bar",
+    labels=["Q1", "Q2", "Q3"],
+)</code></pre>
+
+  <h2>ww.plot()</h2>
+  <pre><code class="language-python">ww.plot(
+    data,
+    x=None,
+    y=None,
+    type="line",
+    color=None,
+    title=None,
+) -> ChartHandle</code></pre>
+
+  <dl class="param-list">
+    <dt>data</dt><dd>Dict or pandas DataFrame with column data.</dd>
+    <dt>x : str | None</dt><dd>Column for x-axis.</dd>
+    <dt>y : str | list | None</dt><dd>Column(s) for y-axis.</dd>
+    <dt>type : str</dt><dd>Chart type. Default <code>"line"</code>.</dd>
+    <dt>color : str | None</dt><dd>Line/bar color.</dd>
+    <dt>title : str | None</dt><dd>Chart title.</dd>
+  </dl>
+
+  <h3>Example</h3>
+  <pre><code class="language-python">data = {
+    "month": ["Jan", "Feb", "Mar"],
+    "revenue": [100, 150, 130],
+    "costs": [80, 90, 85],
+}
+ww.plot(data, x="month", y=["revenue", "costs"], type="line", title="Financials")</code></pre>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

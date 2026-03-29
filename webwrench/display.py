@@ -197,7 +197,7 @@ def metric(
         if delta_color:
             delta_attrs["style"] = f"color:{delta_color}"
         children.append(Element("div", attrs=delta_attrs, content=delta))
-    el = Element("div", attrs={"class": "ww-metric bw_card"}, content=children)
+    el = Element("div", attrs={"class": "ww-metric"}, content=children)
     p.add(el)
     return el
 

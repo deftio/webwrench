@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Server &amp; App API — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="display.html">Display</a>
+  <a href="widgets.html">Widgets</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">API</a> / Server &amp; App</div>
+  <h1>Server &amp; App API</h1>
+
+  <h2>ww.serve()</h2>
+  <pre><code class="language-python">ww.serve(host="0.0.0.0", port=6502, **kwargs)</code></pre>
+  <p>Start the webwrench development server. This is a <strong>blocking</strong> call.</p>
+  <dl class="param-list">
+    <dt>host : str</dt><dd>Bind address. Default <code>"0.0.0.0"</code>.</dd>
+    <dt>port : int</dt><dd>Port number. Default <code>6502</code>.</dd>
+  </dl>
+
+  <div class="callout">
+    <strong>Protocol:</strong> webwrench uses the bwserve protocol &mdash; SSE (Server-Sent Events) for server-to-browser messages, HTTP POST for browser-to-server callbacks. No WebSocket required.
+  </div>
+
+  <h2>ww.App()</h2>
+  <pre><code class="language-python">app = ww.App(transport="sse")</code></pre>
+  <p>Create a multi-page application.</p>
+  <dl class="param-list">
+    <dt>transport : str</dt><dd>Transport protocol. Default <code>"sse"</code>.</dd>
+  </dl>
+
+  <h3>app.page(path)</h3>
+  <p>Decorator to register a page handler.</p>
+  <pre><code class="language-python">@app.page("/")
+def home(ctx):
+    ctx.title("Home")</code></pre>
+
+  <h3>app.serve()</h3>
+  <pre><code class="language-python">app.serve(host="0.0.0.0", port=6502)</code></pre>
+  <p>Start the app server. Same parameters as <code>ww.serve()</code>.</p>
+
+  <h2>PageContext</h2>
+  <p>The <code>ctx</code> object passed to page handlers. Provides the same API as module-level functions:</p>
+
+  <table class="doc-table">
+    <thead><tr><th>Category</th><th>Methods</th></tr></thead>
+    <tbody>
+      <tr><td>Display</td><td><code>title</code>, <code>heading</code>, <code>text</code>, <code>markdown</code>, <code>code</code>, <code>image</code>, <code>divider</code>, <code>table</code>, <code>metric</code>, <code>json</code>, <code>progress</code></td></tr>
+      <tr><td>Widgets</td><td><code>button</code>, <code>input</code>, <code>slider</code>, <code>select</code>, <code>checkbox</code></td></tr>
+      <tr><td>Charts</td><td><code>chart</code>, <code>plot</code></td></tr>
+      <tr><td>Actions</td><td><code>redirect</code>, <code>set_theme</code>, <code>screenshot</code>, <code>remove</code>, <code>patch</code></td></tr>
+      <tr><td>State</td><td><code>state</code> (attribute), <code>compute</code>, <code>recompute</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>ctx.state</h3>
+  <p>Per-session state object with attribute-style access:</p>
+  <pre><code class="language-python">ctx.state.counter = 0
+ctx.state.counter += 1</code></pre>
+
+  <h3>ctx.redirect(url)</h3>
+  <p>Navigate to a different page:</p>
+  <pre><code class="language-python">ctx.redirect("/dashboard")</code></pre>
+
+  <h3>ctx.compute(key, func) / ctx.recompute(key, func)</h3>
+  <p>Memoized computation. <code>compute</code> caches; <code>recompute</code> forces recalculation.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

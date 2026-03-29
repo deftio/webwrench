@@ -1,18 +1,62 @@
 """16 - Modal Dialog
 
-A modal dialog that opens when a button is clicked. The modal
-contains a form with inputs and a confirm button. Demonstrates
-ww.modal() as a context manager and button-driven interactivity.
+A modal dialog containing a feedback form. The modal is rendered on
+page load (positioned fixed, centered) and contains a textarea,
+rating slider, and submit button. The submit callback fires a toast.
+
+Concepts: ww.modal(), context manager (with dialog:),
+          ww.textarea(), ww.slider(), ww.button(), ww.toast().
+
+Note: The modal renders immediately as a fixed overlay. A future
+version of webwrench will support show/hide toggling via callbacks.
 
 Run: python examples/16_modal_dialog.py
 """
 
 import webwrench as ww
 
-ww.title("Modal Dialog Demo")
-ww.text("Click the button below to open a modal dialog with a feedback form.")
+ww.theme("ocean")
 
-open_btn = ww.button("Open Feedback Form")
+# -- Header --
+ww.title("Modal Dialog")
+ww.text(
+    "ww.modal(title) creates a fixed-position overlay dialog. Content "
+    "placed inside the 'with dialog:' block becomes the modal body. "
+    "The submit button fires a callback that shows a toast notification."
+)
+
+ww.divider()
+
+# -- Page content behind the modal --
+ww.heading("Page Content", level=2)
+ww.text(
+    "The chart and table below sit behind the modal overlay. "
+    "In a full app you would toggle modal visibility via callbacks."
+)
+
+ww.chart(
+    [10, 25, 15, 30, 22],
+    type="bar",
+    labels=["Mon", "Tue", "Wed", "Thu", "Fri"],
+    title="Weekly Feedback Count",
+)
+
+ww.table([
+    {"Day": "Monday", "Responses": 10, "Avg Rating": 4.2},
+    {"Day": "Tuesday", "Responses": 25, "Avg Rating": 3.8},
+    {"Day": "Wednesday", "Responses": 15, "Avg Rating": 4.5},
+    {"Day": "Thursday", "Responses": 30, "Avg Rating": 4.1},
+    {"Day": "Friday", "Responses": 22, "Avg Rating": 3.9},
+])
+
+ww.divider()
+
+# -- Modal dialog --
+ww.heading("Feedback Form (Modal)", level=2)
+ww.text(
+    "The modal below demonstrates ww.modal() as a context manager. "
+    "The submit button callback reads the slider value and fires a toast."
+)
 
 dialog = ww.modal("Submit Feedback")
 
@@ -29,15 +73,6 @@ with dialog:
             type="success",
             duration=4000,
         )
-
-ww.divider()
-ww.text("The rest of the page content sits behind the modal overlay.")
-ww.chart(
-    [10, 25, 15, 30, 22],
-    type="bar",
-    labels=["Mon", "Tue", "Wed", "Thu", "Fri"],
-    title="Weekly Feedback Count",
-)
 
 if __name__ == "__main__":
     ww.serve()

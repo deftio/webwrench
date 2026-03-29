@@ -42,10 +42,11 @@ _MIME_TYPES: dict[str, str] = {
 class WebwrenchServer:
     """Asyncio-based HTTP server implementing the bwserve protocol."""
 
-    def __init__(self, page: Page | None = None, host: str = "0.0.0.0", port: int = 8080) -> None:
+    def __init__(self, page: Page | None = None, host: str = "0.0.0.0", port: int = 6502, app: Any = None) -> None:
         self.page = page or get_default_page()
         self.host = host
         self.port = port
+        self.app = app
         self.sessions = SessionManager()
         self._server: asyncio.Server | None = None
         self._running = False
@@ -96,9 +97,17 @@ class WebwrenchServer:
         writer: asyncio.StreamWriter,
     ) -> None:
         """Route a request to the appropriate handler."""
-        # GET / -> shell HTML
+        # GET / -> shell HTML (or app page if app is set)
         if method == "GET" and path == "/":
-            await self._serve_shell(writer)
+            if self.app is not None and "/" in self.app.registered_paths:
+                await self._serve_app_page("/", writer)
+            else:
+                await self._serve_shell(writer)
+            return
+
+        # GET /favicon.ico -> 204 (suppress browser 404 noise)
+        if method == "GET" and path == "/favicon.ico":
+            await _send_response(writer, 204, "image/x-icon", b"")
             return
 
         # GET /bw/events/:id -> SSE stream
@@ -122,12 +131,19 @@ class WebwrenchServer:
             await self._serve_asset(filename, writer)
             return
 
+        # App page routing
+        if method == "GET" and self.app is not None and path in self.app.registered_paths:
+            await self._serve_app_page(path, writer)
+            return
+
         # 404
         await _send_response(writer, 404, "text/plain", b"Not Found")
 
     async def _serve_shell(self, writer: asyncio.StreamWriter) -> None:
         """Serve the initial shell HTML page."""
         client_id = str(uuid.uuid4())
+        # Create session eagerly so POST actions don't 404 before SSE connects
+        self.sessions.create(client_id, self.page)
         html = generate_shell_html(
             self.page,
             client_id=client_id,
@@ -135,11 +151,23 @@ class WebwrenchServer:
         )
         await _send_response(writer, 200, "text/html", html.encode("utf-8"))
 
+    async def _serve_app_page(self, path: str, writer: asyncio.StreamWriter) -> None:
+        """Serve an app page by path."""
+        client_id = str(uuid.uuid4())
+        session = self.sessions.create(client_id, None)
+        page = self.app.build_page(path, session)
+        session.page = page
+        html = generate_shell_html(page, client_id=client_id, assets_mode=options.assets)
+        await _send_response(writer, 200, "text/html", html.encode("utf-8"))
+
     async def _serve_sse(
         self, client_id: str, writer: asyncio.StreamWriter
     ) -> None:
         """Open an SSE stream for a client."""
-        session = self.sessions.create(client_id, self.page)
+        session = self.sessions.get(client_id)
+        if session is None:
+            # Fallback: create if shell didn't (e.g. direct SSE reconnect)
+            session = self.sessions.create(client_id, self.page)
         queue = session.init_async_queue()
 
         # Send SSE headers
@@ -155,7 +183,8 @@ class WebwrenchServer:
         await writer.drain()
 
         # Send initial render
-        taco_list = self.page.to_taco_list()
+        page = session.page or self.page
+        taco_list = page.to_taco_list()
         for taco in taco_list:
             msg = {"type": "replace", "target": "ww-root", "node": taco}
             event_data = f"data: {json.dumps(msg)}\n\n"
@@ -187,8 +216,8 @@ class WebwrenchServer:
         """Handle a widget action POST."""
         session = self.sessions.get(client_id)
         if session is None:
-            await _send_response(writer, 404, "text/plain", b"Session not found")
-            return
+            # Auto-create if session was lost (e.g. SSE reconnect race)
+            session = self.sessions.create(client_id, self.page)
 
         try:
             payload = json.loads(body) if body else {}
@@ -200,9 +229,10 @@ class WebwrenchServer:
         action = payload.get("action", "click")
         value = payload.get("value")
 
-        widget = self.page.get_widget(widget_id)
+        page = session.page or self.page
+        widget = page.get_widget(widget_id)
         if widget is None:
-            await _send_response(writer, 404, "text/plain", b"Widget not found")
+            await _send_response(writer, 200, "application/json", b'{"ok":false}')
             return
 
         # Set session context for the callback
@@ -285,7 +315,7 @@ async def _send_response(
     body: bytes,
 ) -> None:
     """Send an HTTP response."""
-    status_text = {200: "OK", 400: "Bad Request", 404: "Not Found"}.get(
+    status_text = {200: "OK", 204: "No Content", 400: "Bad Request", 404: "Not Found"}.get(
         status, "Unknown"
     )
     header = (
@@ -303,17 +333,18 @@ async def _send_response(
 def serve(
     page: Page | None = None,
     host: str = "0.0.0.0",
-    port: int = 8080,
+    port: int = 6502,
     **kwargs: Any,
 ) -> None:
     """Start a webwrench server (blocking).
 
     This is the main entry point for live apps.
     """
+    app = kwargs.pop("app", None)
     if "assets" in kwargs:
-        options.assets = kwargs["assets"]
+        options.assets = kwargs.pop("assets")
 
-    server = WebwrenchServer(page=page, host=host, port=port)
+    server = WebwrenchServer(page=page, host=host, port=port, app=app)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:

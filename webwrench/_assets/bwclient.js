@@ -1,70 +1,236 @@
 /* bwclient.js - SSE client for the bwserve protocol */
-function wwBoot(clientId, initData) {
-  var root = document.getElementById('ww-root');
 
-  // Render initial TACO data
-  initData.forEach(function(taco) {
-    root.appendChild(bw.createDOM(taco));
-  });
+/* ── Section 1: Global helper functions ── */
 
-  // Initialize charts after DOM is ready
+function triggerDownload(filename, content, mime) {
+  var blob = new Blob([content], { type: mime || 'application/octet-stream' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function wwToast(message, type, duration) {
+  var ms = duration || 3000;
+  var toast = document.createElement('div');
+  toast.className = 'ww-toast ww-toast-' + (type || 'info');
+  toast.textContent = message;
+  document.body.appendChild(toast);
   setTimeout(function() {
-    document.querySelectorAll('[data-chart-config]').forEach(function(canvas) {
+    toast.classList.add('ww-toast-fading');
+    setTimeout(function() { toast.remove(); }, 300);
+  }, ms);
+}
+
+function wwScreenshot(filename, selector) {
+  if (typeof html2canvas === 'undefined') return;
+  var target = selector ? document.querySelector(selector) : document.body;
+  html2canvas(target).then(function(canvas) {
+    var a = document.createElement('a');
+    a.download = filename;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+function wwExportPDF(filename) {
+  window.print();
+}
+
+/* ── Section 2: Register helpers into bw._clientFunctions ── */
+
+(function() {
+  if (typeof bw === 'undefined' || !bw._clientFunctions) return;
+  bw._clientFunctions.loadStyles = function(palette) { bw.loadStyles(palette); };
+  bw._clientFunctions.toggleStyles = function() { bw.toggleStyles(); };
+  bw._clientFunctions.redirect = function(url) { window.location.href = url; };
+  bw._clientFunctions.download = function(filename, content, mime) { triggerDownload(filename, content, mime); };
+  bw._clientFunctions.log = function() { console.log.apply(console, arguments); };
+  bw._clientFunctions.wwToast = function(message, type, duration) { wwToast(message, type, duration); };
+  bw._clientFunctions.wwScreenshot = function(filename, selector) { wwScreenshot(filename, selector); };
+  bw._clientFunctions.wwExportPDF = function(filename) { wwExportPDF(filename); };
+})();
+
+/* ── Section 3: applyMessage — patch adapter + batch recursion + bw.apply delegate ── */
+
+function applyMessage(msg) {
+  if (msg.type === 'patch' && msg.attr && typeof msg.attr === 'object' && !Array.isArray(msg.attr)) {
+    // Server sends attr as a dict; bw.patch() expects a single attr name string.
+    // Expand dict into per-attribute bw.patch() calls.
+    var el = bw._el(msg.target);
+    if (el) {
+      if (msg.content !== undefined) {
+        bw.patch(msg.target, msg.content);
+      }
+      var keys = Object.keys(msg.attr);
+      for (var i = 0; i < keys.length; i++) {
+        bw.patch(msg.target, msg.attr[keys[i]], keys[i]);
+      }
+    }
+  } else if (msg.type === 'batch' && msg.ops) {
+    // Recurse through applyMessage so nested patches get the dict adapter too
+    for (var j = 0; j < msg.ops.length; j++) {
+      applyMessage(msg.ops[j]);
+    }
+  } else {
+    // All other message types: delegate directly to bitwrench
+    bw.apply(msg);
+  }
+}
+
+/* ── Section 4: Chart initialization via MutationObserver ── */
+
+function initCharts(root) {
+  if (typeof Chart === 'undefined') return;
+  var canvases = root.querySelectorAll('[data-chart-config]');
+  canvases.forEach(function(canvas) {
+    if (canvas._wwChartInit) return;
+    try {
       var config = JSON.parse(canvas.getAttribute('data-chart-config'));
-      if (typeof Chart !== 'undefined') {
-        new Chart(canvas.getContext('2d'), config);
+      new Chart(canvas.getContext('2d'), config);
+      canvas._wwChartInit = true;
+    } catch (e) {
+      // skip malformed configs
+    }
+  });
+}
+
+function observeCharts(root) {
+  // Initial scan
+  initCharts(root);
+  // Watch for new chart canvases added to the DOM
+  if (typeof MutationObserver !== 'undefined') {
+    var observer = new MutationObserver(function(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (added[j].nodeType === 1) {
+            initCharts(added[j].parentElement || root);
+          }
+        }
       }
     });
-  }, 0);
+    observer.observe(root, { childList: true, subtree: true });
+  }
+}
 
-  // Open SSE connection
-  var evtSource = new EventSource('/bw/events/' + clientId);
-  evtSource.onmessage = function(event) {
-    var msg = JSON.parse(event.data);
-    handleMessage(msg);
-  };
+/* ── Section 4a2: Markdown rendering via quikdown ── */
 
-  function handleMessage(msg) {
-    switch (msg.type) {
-      case 'replace':
-        var target = document.getElementById(msg.target) || document.querySelector(msg.target);
-        if (target && msg.node) {
-          target.innerHTML = '';
-          target.appendChild(bw.createDOM(msg.node));
+function initMarkdown(root) {
+  if (typeof quikdown === 'undefined') return;
+  var els = root.querySelectorAll('.ww-markdown[data-md]');
+  els.forEach(function(el) {
+    if (el._wwMdInit) return;
+    var md = el.getAttribute('data-md');
+    el.innerHTML = quikdown(md, {inline_styles: true});
+    el._wwMdInit = true;
+  });
+}
+
+function observeMarkdown(root) {
+  initMarkdown(root);
+  if (typeof MutationObserver !== 'undefined') {
+    var observer = new MutationObserver(function(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (added[j].nodeType === 1) {
+            initMarkdown(added[j].parentElement || root);
+          }
         }
-        break;
-      case 'patch':
-        var el = document.getElementById(msg.target) || document.querySelector(msg.target);
-        if (el) {
-          if (msg.content !== undefined) el.textContent = String(msg.content);
-          if (msg.attr) Object.keys(msg.attr).forEach(function(k) { el.setAttribute(k, msg.attr[k]); });
-        }
-        break;
-      case 'append':
-        var parent = document.getElementById(msg.target) || document.querySelector(msg.target);
-        if (parent && msg.node) parent.appendChild(bw.createDOM(msg.node));
-        break;
-      case 'remove':
-        var rem = document.getElementById(msg.target) || document.querySelector(msg.target);
-        if (rem) rem.remove();
-        break;
-      case 'batch':
-        if (msg.ops) msg.ops.forEach(handleMessage);
-        break;
-      case 'call':
-        if (msg.name === 'loadStyles' && msg.args) bw.loadStyles(msg.args[0]);
-        else if (msg.name === 'toggleStyles') bw.toggleStyles();
-        else if (msg.name === 'redirect' && msg.args) window.location.href = msg.args[0];
-        else if (msg.name === 'download' && msg.args) triggerDownload(msg.args[0], msg.args[1], msg.args[2]);
-        else if (msg.name === 'log' && msg.args) console.log.apply(console, msg.args);
-        break;
-      case 'message':
-        // Component-level message dispatch
-        break;
+      }
+    });
+    observer.observe(root, { childList: true, subtree: true });
+  }
+}
+
+/* ── Section 4b: Table initialization via bw.makeTable() ── */
+
+function initTables(root) {
+  if (typeof bw === 'undefined' || !bw.makeTable) return;
+  var containers = root.querySelectorAll('.ww-table[data-config]');
+  containers.forEach(function(container) {
+    if (container._wwTableInit) return;
+    try {
+      var config = JSON.parse(container.getAttribute('data-config'));
+      if (!config.sortable && !config.searchable && !config.paginate) return;
+      // Convert headers+rows to bw.makeTable format
+      var data = config.rows.map(function(row) {
+        var obj = {};
+        config.headers.forEach(function(h, i) { obj[h] = row[i]; });
+        return obj;
+      });
+      var tableConfig = {
+        data: data,
+        sortable: !!config.sortable,
+        hover: true,
+        striped: true
+      };
+      if (config.paginate) {
+        tableConfig.pageSize = config.paginate;
+      }
+      var taco = bw.makeTable(tableConfig);
+      var newEl = bw.createDOM(taco);
+      container.innerHTML = '';
+      container.appendChild(newEl);
+      container._wwTableInit = true;
+    } catch (e) {
+      // skip malformed configs
     }
+  });
+}
+
+function observeTables(root) {
+  initTables(root);
+  if (typeof MutationObserver !== 'undefined') {
+    var observer = new MutationObserver(function(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          if (added[j].nodeType === 1) {
+            initTables(added[j].parentElement || root);
+          }
+        }
+      }
+    });
+    observer.observe(root, { childList: true, subtree: true });
+  }
+}
+
+/* ── Section 5: SSE connection with exponential backoff ── */
+
+function connectSSE(clientId) {
+  var retryDelay = 1000;
+  var maxDelay = 30000;
+
+  function connect() {
+    var evtSource = new EventSource('/bw/events/' + clientId);
+
+    evtSource.onmessage = function(event) {
+      var msg = JSON.parse(event.data);
+      applyMessage(msg);
+    };
+
+    evtSource.onopen = function() {
+      retryDelay = 1000;  // Reset on successful connection
+    };
+
+    evtSource.onerror = function() {
+      evtSource.close();
+      setTimeout(function() {
+        retryDelay = Math.min(retryDelay * 2, maxDelay);
+        connect();
+      }, retryDelay);
+    };
   }
 
-  // Bind widget events
+  connect();
+}
+
+/* ── Section 6: Widget event delegation ── */
+
+function bindWidgetEvents(root, clientId) {
   root.addEventListener('click', function(e) {
     var btn = e.target.closest('.ww-button');
     if (btn) {
@@ -90,6 +256,8 @@ function wwBoot(clientId, initData) {
   });
 }
 
+/* ── Section 7: POST action sender ── */
+
 function postAction(clientId, payload) {
   fetch('/bw/return/action/' + clientId, {
     method: 'POST',
@@ -98,35 +266,31 @@ function postAction(clientId, payload) {
   });
 }
 
-function triggerDownload(filename, content, mime) {
-  var blob = new Blob([content], { type: mime || 'application/octet-stream' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+/* ── Section 8: Boot ── */
 
-function wwToast(message, type, duration) {
-  var toast = document.createElement('div');
-  toast.className = 'ww-toast ww-toast-' + type;
-  toast.textContent = message;
-  toast.style.cssText = 'position:fixed;top:1em;right:1em;padding:0.75em 1.5em;border-radius:4px;z-index:9999;background:#333;color:#fff;';
-  document.body.appendChild(toast);
-  setTimeout(function() { toast.remove(); }, duration || 3000);
-}
+function wwBoot(clientId, initData, palette) {
+  var root = document.getElementById('ww-root');
 
-function wwScreenshot(filename, selector) {
-  if (typeof html2canvas === 'undefined') return;
-  var target = selector ? document.querySelector(selector) : document.body;
-  html2canvas(target).then(function(canvas) {
-    var a = document.createElement('a');
-    a.download = filename;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-  });
-}
+  // Inject bitwrench structural CSS + themed styles via JS
+  if (typeof bw !== 'undefined' && bw.loadStyles) {
+    bw.loadStyles(palette || {});
+  }
 
-function wwExportPDF(filename) {
-  window.print();
+  // Render initial TACO data using bitwrench's DOM mount
+  bw.DOM(root, initData);
+
+  // Markdown rendering via quikdown
+  observeMarkdown(root);
+
+  // Chart initialization with MutationObserver
+  observeCharts(root);
+
+  // Table initialization (sortable/paginated via bw.makeTable)
+  observeTables(root);
+
+  // Open SSE with reconnection
+  connectSSE(clientId);
+
+  // Bind widget interactions
+  bindWidgetEvents(root, clientId);
 }

@@ -41,7 +41,7 @@ ww.table([
     {"Product": "Developer Tools", "Revenue": "$890k", "Units": "1,240", "Growth": "+31%"},
     {"Product": "Analytics Platform", "Revenue": "$540k", "Units": "180", "Growth": "+12%"},
     {"Product": "Cloud Storage", "Revenue": "$270k", "Units": "2,100", "Growth": "+8%"},
-])
+], sortable=True)
 
 ww.divider()
 ww.text("Report generated with webwrench v0.1.0")

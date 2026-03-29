@@ -13,13 +13,14 @@ from webwrench._context import Element, Page, WidgetHandle, get_default_page
 def button(
     label: str,
     on_click: Any = None,
+    variant: str = "primary",
     page: Page | None = None,
 ) -> WidgetHandle:
     """Create a button widget."""
     p = page or get_default_page()
     handle = WidgetHandle(
         "button",
-        attrs={"class": "bw_btn ww-button", "type": "button"},
+        attrs={"class": f"bw_btn bw_{variant} ww-button", "type": "button"},
         content=label,
         widget_type="button",
     )
@@ -43,13 +44,13 @@ def input_widget(
             "type": "text",
             "placeholder": placeholder,
             "value": value,
-            "class": "ww-input-field",
+            "class": "bw_form_control ww-input-field",
         },
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-input-group"},
+        attrs={"class": "bw_form_group ww-input-group"},
         content=[label_el, input_el],
         default_value=value,
         widget_type="input",
@@ -68,13 +69,13 @@ def textarea(
     p = page or get_default_page()
     ta_el = Element(
         "textarea",
-        attrs={"rows": str(rows), "class": "ww-textarea-field"},
+        attrs={"rows": str(rows), "class": "bw_form_control ww-textarea-field"},
         content=value,
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-textarea-group"},
+        attrs={"class": "bw_form_group ww-textarea-group"},
         content=[label_el, ta_el],
         default_value=value,
         widget_type="textarea",
@@ -101,14 +102,14 @@ def slider(
             "max": str(max),
             "value": str(value),
             "step": str(step),
-            "class": "ww-slider-input",
+            "class": "bw_range ww-slider-input",
         },
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     value_el = Element("span", attrs={"class": "ww-slider-value"}, content=str(value))
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-slider-group"},
+        attrs={"class": "bw_form_group ww-slider-group"},
         content=[label_el, input_el, value_el],
         default_value=value,
         widget_type="slider",
@@ -132,11 +133,11 @@ def select(
     option_els = [
         Element("option", attrs={"value": opt}, content=opt) for opt in options
     ]
-    select_el = Element("select", attrs={"class": "ww-select-field"}, content=option_els)
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    select_el = Element("select", attrs={"class": "bw_form_control ww-select-field"}, content=option_els)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-select-group"},
+        attrs={"class": "bw_form_group ww-select-group"},
         content=[label_el, select_el],
         default_value=default,
         widget_type="select",
@@ -157,10 +158,10 @@ def checkbox(
     if value:
         input_attrs["checked"] = "checked"
     input_el = Element("input", attrs=input_attrs)
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-checkbox-group"},
+        attrs={"class": "bw_form_group ww-checkbox-group"},
         content=[input_el, label_el],
         default_value=value,
         widget_type="checkbox",
@@ -198,10 +199,10 @@ def radio(
                 ],
             )
         )
-    legend = Element("legend", attrs={"class": "ww-label"}, content=label)
+    legend = Element("legend", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "fieldset",
-        attrs={"class": "ww-radio-group"},
+        attrs={"class": "bw_form_group ww-radio-group"},
         content=[legend, *radio_els],
         default_value=default,
         widget_type="radio",
@@ -222,10 +223,10 @@ def file_upload(
     if accept:
         input_attrs["accept"] = accept
     input_el = Element("input", attrs=input_attrs)
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-file-group"},
+        attrs={"class": "bw_form_group ww-file-group"},
         content=[label_el, input_el],
         default_value=None,
         widget_type="file_upload",
@@ -243,12 +244,12 @@ def date_picker(
     p = page or get_default_page()
     input_el = Element(
         "input",
-        attrs={"type": "date", "value": value, "class": "ww-date-input"},
+        attrs={"type": "date", "value": value, "class": "bw_form_control ww-date-input"},
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-date-group"},
+        attrs={"class": "bw_form_group ww-date-group"},
         content=[label_el, input_el],
         default_value=value,
         widget_type="date_picker",
@@ -266,12 +267,12 @@ def color_picker(
     p = page or get_default_page()
     input_el = Element(
         "input",
-        attrs={"type": "color", "value": value, "class": "ww-color-input"},
+        attrs={"type": "color", "value": value, "class": "bw_form_control ww-color-input"},
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-color-group"},
+        attrs={"class": "bw_form_group ww-color-group"},
         content=[label_el, input_el],
         default_value=value,
         widget_type="color_picker",
@@ -298,13 +299,13 @@ def number(
             "max": str(max),
             "step": str(step),
             "value": str(value),
-            "class": "ww-number-input",
+            "class": "bw_form_control ww-number-input",
         },
     )
-    label_el = Element("label", attrs={"class": "ww-label"}, content=label)
+    label_el = Element("label", attrs={"class": "bw_form_label ww-label"}, content=label)
     handle = WidgetHandle(
         "div",
-        attrs={"class": "ww-number-group"},
+        attrs={"class": "bw_form_group ww-number-group"},
         content=[label_el, input_el],
         default_value=value,
         widget_type="number",

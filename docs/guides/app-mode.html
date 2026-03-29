@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>App Mode — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="script-mode.html">Script Mode</a>
+  <a href="app-mode.html">App Mode</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="theming.html">Theming</a>
+  <a href="export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="../api/display.html">Display</a>
+  <a href="../api/widgets.html">Widgets</a>
+  <a href="../api/charts.html">Charts</a>
+  <a href="../api/layout.html">Layout</a>
+  <a href="../api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">Guides</a> / App Mode</div>
+  <h1>App Mode</h1>
+
+  <p>App mode gives you multi-page routing, per-session state, and a structured way to build larger applications.</p>
+
+  <h2>Basic App</h2>
+  <pre><code class="language-python">import webwrench as ww
+
+app = ww.App()
+
+@app.page("/")
+def home(ctx):
+    ctx.title("Home")
+    ctx.text("Welcome to the home page!")
+
+@app.page("/about")
+def about(ctx):
+    ctx.title("About")
+    ctx.text("This is the about page.")
+
+app.serve()</code></pre>
+
+  <h2>The PageContext Object</h2>
+  <p>Each page handler receives a <code>ctx</code> (PageContext) argument. It provides the same API as module-level functions:</p>
+
+  <table class="doc-table">
+    <thead><tr><th>Script Mode</th><th>App Mode</th></tr></thead>
+    <tbody>
+      <tr><td><code>ww.title("Hi")</code></td><td><code>ctx.title("Hi")</code></td></tr>
+      <tr><td><code>ww.chart(data)</code></td><td><code>ctx.chart(data)</code></td></tr>
+      <tr><td><code>ww.slider("x")</code></td><td><code>ctx.slider("x")</code></td></tr>
+      <tr><td><code>ww.theme("dark")</code></td><td><code>ctx.set_theme("dark")</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Per-Session State</h2>
+  <p>Use <code>ctx.state</code> to store data that persists across interactions within a session:</p>
+  <pre><code class="language-python">@app.page("/counter")
+def counter(ctx):
+    ctx.title("Counter")
+
+    if not hasattr(ctx.state, "count"):
+        ctx.state.count = 0
+
+    display = ctx.text(f"Count: {ctx.state.count}")
+    btn = ctx.button("Increment")
+
+    @btn.on_click
+    def clicked():
+        ctx.state.count += 1
+        display.update(f"Count: {ctx.state.count}")</code></pre>
+
+  <h2>Navigation Between Pages</h2>
+  <pre><code class="language-python">@app.page("/")
+def home(ctx):
+    ctx.title("Home")
+    ctx.text("Welcome!")
+    ctx.button("Go to Dashboard").on_click = lambda: ctx.redirect("/dashboard")
+
+@app.page("/dashboard")
+def dashboard(ctx):
+    ctx.title("Dashboard")
+    ctx.chart([10, 20, 30], type="bar", labels=["A", "B", "C"])</code></pre>
+
+  <h2>When to Use App Mode</h2>
+  <ul>
+    <li>Multi-page applications with routing</li>
+    <li>Apps that need per-session state</li>
+    <li>Production dashboards with multiple views</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Note:</strong> Script mode and app mode are mutually exclusive. Don't mix <code>ww.title()</code> with <code>@app.page()</code> in the same script.
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theming — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="script-mode.html">Script Mode</a>
+  <a href="app-mode.html">App Mode</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="theming.html">Theming</a>
+  <a href="export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="../api/display.html">Display</a>
+  <a href="../api/widgets.html">Widgets</a>
+  <a href="../api/charts.html">Charts</a>
+  <a href="../api/layout.html">Layout</a>
+  <a href="../api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">Guides</a> / Theming</div>
+  <h1>Theming</h1>
+
+  <p>webwrench theming uses <a href="https://github.com/deftio/bitwrench">bitwrench&rsquo;s</a> palette system. Set a preset theme or define custom colors.</p>
+
+  <h2>Preset Themes</h2>
+  <pre><code class="language-python">import webwrench as ww
+
+ww.theme("ocean")
+ww.title("Ocean Theme")
+ww.serve()</code></pre>
+
+  <table class="doc-table">
+    <thead><tr><th>Preset</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>"light"</code></td><td>Default light theme</td></tr>
+      <tr><td><code>"dark"</code></td><td>Dark background with light text</td></tr>
+      <tr><td><code>"ocean"</code></td><td>Blue palette (#0077b6 primary)</td></tr>
+      <tr><td><code>"forest"</code></td><td>Green palette</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Custom Colors</h2>
+  <pre><code class="language-python">ww.theme(primary="#e63946", secondary="#457b9d", background="#f1faee")</code></pre>
+
+  <h2>Toggle Light/Dark</h2>
+  <p>Use <code>ww.toggle_theme()</code> to switch between light and dark at runtime:</p>
+  <pre><code class="language-python">btn = ww.button("Toggle Dark Mode")
+
+@btn.on_click
+def toggle():
+    ww.toggle_theme()</code></pre>
+
+  <h2>Custom CSS</h2>
+  <p>Inject custom CSS rules with <code>ww.css()</code>:</p>
+  <pre><code class="language-python">ww.css({
+    ".my-card": {
+        "border-radius": "12px",
+        "box-shadow": "0 4px 8px rgba(0,0,0,0.1)",
+    }
+})</code></pre>
+
+  <div class="callout">
+    <strong>Note:</strong> webwrench does not create its own CSS variables. All theming goes through bitwrench&rsquo;s <code>bw.loadStyles()</code> API. This keeps the frontend consistent.
+  </div>
+
+  <h2>Theme in App Mode</h2>
+  <pre><code class="language-python">@app.page("/")
+def home(ctx):
+    ctx.set_theme("dark")
+    ctx.title("Dark Dashboard")</code></pre>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

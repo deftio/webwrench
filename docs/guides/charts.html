@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Charts — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="script-mode.html">Script Mode</a>
+  <a href="app-mode.html">App Mode</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="theming.html">Theming</a>
+  <a href="export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="../api/display.html">Display</a>
+  <a href="../api/widgets.html">Widgets</a>
+  <a href="../api/charts.html">Charts</a>
+  <a href="../api/layout.html">Layout</a>
+  <a href="../api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">Guides</a> / Charts</div>
+  <h1>Charts</h1>
+
+  <p>webwrench uses <a href="https://www.chartjs.org/">Chart.js</a> (bundled via bitwrench) for all chart rendering. One function, many chart types.</p>
+
+  <h2>Basic Chart</h2>
+  <pre><code class="language-python">import webwrench as ww
+
+ww.chart([12, 19, 3, 5, 2, 3], type="bar", labels=["Jan", "Feb", "Mar", "Apr", "May", "Jun"])
+ww.serve()</code></pre>
+
+  <h2>Chart Types</h2>
+  <table class="doc-table">
+    <thead><tr><th>Type</th><th>Value</th><th>Use Case</th></tr></thead>
+    <tbody>
+      <tr><td>Bar</td><td><code>"bar"</code></td><td>Categorical comparisons</td></tr>
+      <tr><td>Line</td><td><code>"line"</code></td><td>Trends over time</td></tr>
+      <tr><td>Pie</td><td><code>"pie"</code></td><td>Proportions of a whole</td></tr>
+      <tr><td>Doughnut</td><td><code>"doughnut"</code></td><td>Proportions (with center hole)</td></tr>
+      <tr><td>Radar</td><td><code>"radar"</code></td><td>Multi-axis comparisons</td></tr>
+      <tr><td>Scatter</td><td><code>"scatter"</code></td><td>X-Y data points</td></tr>
+      <tr><td>Bubble</td><td><code>"bubble"</code></td><td>X-Y with size dimension</td></tr>
+      <tr><td>Polar Area</td><td><code>"polarArea"</code></td><td>Radial proportions</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Multiple Datasets</h2>
+  <pre><code class="language-python">ww.chart(
+    datasets=[
+        {"label": "2024", "data": [10, 20, 30, 40]},
+        {"label": "2025", "data": [15, 25, 20, 45]},
+    ],
+    type="line",
+    labels=["Q1", "Q2", "Q3", "Q4"],
+    title="Revenue Comparison",
+)</code></pre>
+
+  <h2>Dynamic Updates</h2>
+  <p><code>ww.chart()</code> returns a <code>ChartHandle</code>. Call <code>.update(data)</code> to change the data:</p>
+  <pre><code class="language-python">chart = ww.chart([1, 2, 3], type="bar", labels=["A", "B", "C"])
+slider = ww.slider("Scale", min=1, max=10, value=1)
+
+@slider.on_change
+def scale(val):
+    chart.update([1 * val, 2 * val, 3 * val])</code></pre>
+
+  <h2>The plot() Function</h2>
+  <p><code>ww.plot()</code> is a convenience for dict-based data (DataFrame-like):</p>
+  <pre><code class="language-python">data = {
+    "month": ["Jan", "Feb", "Mar", "Apr"],
+    "sales": [100, 150, 130, 170],
+}
+ww.plot(data, x="month", y="sales", type="line", title="Monthly Sales")</code></pre>
+
+  <h2>Chart Options</h2>
+  <p>Pass a Chart.js options dict for full control:</p>
+  <pre><code class="language-python">ww.chart(
+    [12, 19, 3],
+    type="bar",
+    labels=["A", "B", "C"],
+    options={
+        "plugins": {"legend": {"display": False}},
+        "scales": {"y": {"beginAtZero": True}},
+    },
+)</code></pre>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

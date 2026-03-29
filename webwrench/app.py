@@ -5,7 +5,6 @@ Provides decorator-based routing, shared state, and per-page contexts.
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any, Callable
 
 from webwrench._context import Element, Page, WidgetHandle, restore_active_session, set_active_session
@@ -192,23 +191,7 @@ class App:
         """Return all registered page paths."""
         return list(self._pages.keys())
 
-    def serve(self, host: str = "0.0.0.0", port: int = 8080, **kwargs: Any) -> None:
+    def serve(self, host: str = "0.0.0.0", port: int = 6502, **kwargs: Any) -> None:
         """Start the app server (blocking)."""
         from webwrench.server import serve
-
-        # For multi-page apps, we'd need a custom router.
-        # For now, build the default page from '/' handler.
-        if "/" in self._pages:
-            from webwrench._context import get_default_page
-            page = get_default_page()
-            page.reset()
-            session = Session("__build__")
-            token = set_active_session(session)
-            try:
-                ctx = PageContext(session=session, page=page, app=self)
-                self._pages["/"](ctx)
-            finally:
-                restore_active_session(token)
-            serve(page=page, host=host, port=port, **kwargs)
-        else:
-            serve(host=host, port=port, **kwargs)
+        serve(host=host, port=port, app=self, **kwargs)

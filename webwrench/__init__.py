@@ -169,11 +169,37 @@ from webwrench.server import serve
 
 __version__ = "0.1.0"
 
+
+def get_version() -> dict[str, str]:
+    """Return version info for webwrench and its dependencies.
+
+    Returns a dict with keys: webwrench, python, bitwrench, platform.
+    """
+    import os
+    import platform as _platform
+    import re
+
+    bw_version = "unknown"
+    bw_path = os.path.join(os.path.dirname(__file__), "_assets", "bitwrench.min.js")
+    with open(bw_path) as f:
+        first_line = f.readline()
+    m = re.search(r"bitwrench v(\d+\.\d+\.\d+)", first_line)
+    if m:
+        bw_version = m.group(1)
+
+    return {
+        "webwrench": __version__,
+        "python": _platform.python_version(),
+        "bitwrench": bw_version,
+        "platform": _platform.platform(),
+    }
+
 __all__ = [
     # Core
     "App",
     "options",
     "__version__",
+    "get_version",
     # Display
     "title",
     "heading",

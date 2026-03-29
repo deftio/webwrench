@@ -10,6 +10,7 @@ from webwrench._shell import (
     _build_inline_scripts,
     _build_scripts,
     _build_theme_css,
+    _is_stub_asset,
     _lib_filename,
     _read_asset,
     generate_export_html,
@@ -40,11 +41,22 @@ class TestLibFilename:
 
 
 class TestBuildScripts:
-    def test_local_mode(self):
+    def test_local_mode_stub_falls_back_to_cdn(self):
         scripts = _build_scripts({"chartjs"}, "local")
         assert "/ww/lib/bitwrench.min.js" in scripts
-        assert "/ww/lib/chart.min.js" in scripts
+        # chart.min.js is a stub, so CDN URL should be used instead
+        assert CDN_URLS["chartjs"] in scripts
         assert "/ww/lib/bwclient.js" in scripts
+
+    def test_local_mode_real_asset_stays_local(self, tmp_path, monkeypatch):
+        """When a lib asset is a real file (>1024 bytes), serve locally."""
+        fake_assets = tmp_path / "assets"
+        fake_assets.mkdir()
+        (fake_assets / "chart.min.js").write_text("x" * 2000)
+        monkeypatch.setattr("webwrench._shell._ASSETS_DIR", str(fake_assets))
+        scripts = _build_scripts({"chartjs"}, "local")
+        assert "/ww/lib/chart.min.js" in scripts
+        assert CDN_URLS["chartjs"] not in scripts
 
     def test_cdn_mode(self):
         scripts = _build_scripts({"chartjs"}, "cdn")
@@ -61,19 +73,47 @@ class TestBuildScripts:
         scripts = _build_scripts({"unknown_lib"}, "cdn")
         assert "unknown_lib" not in scripts
 
+    def test_local_mode_unknown_lib_no_cdn(self):
+        """Libs without a CDN URL and without a filename are simply skipped."""
+        scripts = _build_scripts({"unknown_lib"}, "local")
+        assert "unknown_lib" not in scripts
+
+
+class TestIsStubAsset:
+    def test_stub_file(self):
+        assert _is_stub_asset("chart.min.js") is True
+
+    def test_real_file(self):
+        assert _is_stub_asset("bitwrench.min.js") is False
+
+    def test_missing_file(self):
+        assert _is_stub_asset("nonexistent.js") is True
+
 
 class TestBuildInlineScripts:
     def test_includes_bitwrench(self):
         result = _build_inline_scripts(set())
         assert "<script>" in result
 
-    def test_includes_chartjs(self):
+    def test_stub_chartjs_uses_cdn(self):
         result = _build_inline_scripts({"chartjs"})
-        assert result.count("<script>") == 2  # bitwrench + chartjs
+        assert result.count("</script>") == 3  # bitwrench + quikdown + chartjs CDN
+        assert CDN_URLS["chartjs"] in result
+
+    def test_real_asset_inlined(self, tmp_path, monkeypatch):
+        fake_assets = tmp_path / "assets"
+        fake_assets.mkdir()
+        (fake_assets / "bitwrench.min.js").write_text("/* bw */")
+        (fake_assets / "quikdown.min.js").write_text("/* qd */")
+        (fake_assets / "chart.min.js").write_text("/* real chart lib */" + "x" * 2000)
+        monkeypatch.setattr("webwrench._shell._ASSETS_DIR", str(fake_assets))
+        result = _build_inline_scripts({"chartjs"})
+        assert CDN_URLS["chartjs"] not in result
+        assert "real chart lib" in result
 
     def test_unknown_lib_skipped(self):
         result = _build_inline_scripts({"unknown_lib"})
-        assert result.count("<script>") == 1  # only bitwrench
+        assert result.count("</script>") == 2  # bitwrench + quikdown
 
 
 class TestBuildThemeCss:

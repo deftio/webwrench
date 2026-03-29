@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From Gradio — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="../api/display.html">Display</a>
+  <a href="../api/widgets.html">Widgets</a>
+  <a href="../api/charts.html">Charts</a>
+  <a href="../api/layout.html">Layout</a>
+  <a href="../api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="from-streamlit.html">From Streamlit</a>
+  <a href="from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">Migration</a> / From Gradio</div>
+  <h1>Coming from Gradio</h1>
+
+  <p>Gradio excels at building ML demo interfaces. webwrench targets a broader set of dashboard and reporting use cases with a simpler architecture.</p>
+
+  <h2>Key Conceptual Differences</h2>
+  <table class="doc-table">
+    <thead><tr><th>Concept</th><th>Gradio</th><th>webwrench</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Primary use case</td>
+        <td>ML model demos</td>
+        <td>Dashboards and HTML reports</td>
+      </tr>
+      <tr>
+        <td>Layout model</td>
+        <td>Blocks with <code>gr.Row</code>, <code>gr.Column</code></td>
+        <td>Context managers: <code>ww.columns</code>, <code>ww.tabs</code></td>
+      </tr>
+      <tr>
+        <td>Event handling</td>
+        <td><code>.click(fn, inputs, outputs)</code></td>
+        <td><code>@widget.on_change</code> decorator</td>
+      </tr>
+      <tr>
+        <td>Dependencies</td>
+        <td>Many (fastapi, pydantic, etc.)</td>
+        <td>Zero runtime dependencies</td>
+      </tr>
+      <tr>
+        <td>Frontend</td>
+        <td>Svelte components</td>
+        <td>bitwrench.js</td>
+      </tr>
+      <tr>
+        <td>Sharing</td>
+        <td>Gradio hosted sharing links</td>
+        <td>Static HTML export</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Side-by-Side Examples</h2>
+
+  <h3>Text Input with Output</h3>
+  <table class="doc-table">
+    <thead><tr><th>Gradio</th><th>webwrench</th></tr></thead>
+    <tbody><tr>
+      <td><pre><code class="language-python">import gradio as gr
+
+def greet(name):
+    return f"Hello {name}!"
+
+gr.Interface(
+    fn=greet,
+    inputs="text",
+    outputs="text",
+).launch()</code></pre></td>
+      <td><pre><code class="language-python">import webwrench as ww
+
+ww.title("Greeter")
+name = ww.input("Name")
+output = ww.text("")
+
+@name.on_change
+def greet(val):
+    output.update(f"Hello {val}!")
+
+ww.serve()</code></pre></td>
+    </tr></tbody>
+  </table>
+
+  <h3>Slider Control</h3>
+  <table class="doc-table">
+    <thead><tr><th>Gradio</th><th>webwrench</th></tr></thead>
+    <tbody><tr>
+      <td><pre><code class="language-python">import gradio as gr
+
+def scale(data, n):
+    return [d * n for d in data]
+
+with gr.Blocks() as demo:
+    s = gr.Slider(1, 10, value=1)
+    out = gr.JSON()
+    s.change(scale, [s], [out])
+
+demo.launch()</code></pre></td>
+      <td><pre><code class="language-python">import webwrench as ww
+
+data = [10, 20, 30]
+chart = ww.chart(data, type="bar",
+    labels=["A", "B", "C"])
+s = ww.slider("Scale", min=1, max=10)
+
+@s.on_change
+def scale(n):
+    chart.update([d * n for d in data])
+
+ww.serve()</code></pre></td>
+    </tr></tbody>
+  </table>
+
+  <h2>Gradio Concepts That Map Differently</h2>
+  <ul>
+    <li><strong><code>gr.Interface</code></strong> &mdash; No direct equivalent. webwrench uses individual widget + callback patterns instead of input/output function mapping.</li>
+    <li><strong><code>gr.Blocks</code></strong> &mdash; Similar to webwrench script mode. Elements are added sequentially.</li>
+    <li><strong><code>.change(fn, inputs, outputs)</code></strong> &mdash; webwrench uses <code>@widget.on_change</code> and calls <code>.update()</code> on targets directly.</li>
+    <li><strong>Sharing links</strong> &mdash; webwrench uses <code>ww.export()</code> for static sharing. For live sharing, deploy as a standard Python web server.</li>
+  </ul>
+
+  <h2>Advantages of webwrench</h2>
+  <ul>
+    <li>Zero dependencies &mdash; no FastAPI, uvicorn, or pydantic required</li>
+    <li>Self-contained HTML export for offline sharing</li>
+    <li>Direct DOM updates without intermediary serialization</li>
+    <li>Built-in Chart.js support for data visualization</li>
+  </ul>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

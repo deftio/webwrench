@@ -18,10 +18,12 @@ class LayoutContainer(Element):
         tag: str,
         attrs: dict[str, Any] | None = None,
         page: Page | None = None,
+        body_class: str = "",
     ) -> None:
         super().__init__(tag, attrs=attrs, content=[])
         self._page = page or get_default_page()
         self._saved_elements: list[Element] | None = None
+        self._body_class = body_class
 
     def __enter__(self) -> "LayoutContainer":
         # Temporarily redirect new elements into this container
@@ -34,7 +36,14 @@ class LayoutContainer(Element):
             # Elements added since __enter__ are our children
             new_elements = self._page.elements[len(self._saved_elements):]
             self._page.elements = list(self._saved_elements)
-            self.content = list(new_elements)
+            # Preserve pre-existing content (e.g., card title, modal header)
+            existing = self.content if isinstance(self.content, list) else []
+            if self._body_class and new_elements:
+                body = Element("div", attrs={"class": self._body_class},
+                               content=list(new_elements))
+                self.content = existing + [body]
+            else:
+                self.content = existing + list(new_elements)
             # Re-register widgets from children
             for el in new_elements:
                 if isinstance(el, WidgetHandle) and el.id in self._page._widgets:
@@ -171,12 +180,13 @@ def card(title: str | None = None, page: Page | None = None) -> LayoutContainer:
     children: list[Any] = []
     if title:
         children.append(
-            Element("div", attrs={"class": "ww-card-title"}, content=title)
+            Element("div", attrs={"class": "bw_card_header ww-card-title"}, content=title)
         )
     container = LayoutContainer(
         "div",
         attrs={"class": "ww-card bw_card"},
         page=p,
+        body_class="bw_card_body",
     )
     container.content = children
     p.add(container)
@@ -190,7 +200,7 @@ def grid(template: str = "1fr 1fr", page: Page | None = None) -> LayoutContainer
         "div",
         attrs={
             "class": "ww-grid",
-            "style": f"display:grid;grid-template:{template};gap:1rem",
+            "style": f"display:grid;grid-template-columns:{template};gap:1rem",
         },
         page=p,
     )
@@ -201,10 +211,11 @@ def grid(template: str = "1fr 1fr", page: Page | None = None) -> LayoutContainer
 def modal(title: str, page: Page | None = None) -> LayoutContainer:
     """Create a modal dialog container."""
     p = page or get_default_page()
-    header = Element("div", attrs={"class": "ww-modal-header"}, content=title)
+    title_el = Element("h5", attrs={"class": "bw_modal_title"}, content=title)
+    header = Element("div", attrs={"class": "bw_modal_header ww-modal-header"}, content=[title_el])
     container = LayoutContainer(
         "div",
-        attrs={"class": "ww-modal", "role": "dialog", "aria-modal": "true"},
+        attrs={"class": "bw_modal ww-modal", "role": "dialog", "aria-modal": "true"},
         page=p,
     )
     container.content = [header]
@@ -221,10 +232,10 @@ def nav(items: list[dict[str, str]], page: Page | None = None) -> Element:
         links.append(
             Element(
                 "a",
-                attrs={"href": item.get("href", "#"), "class": "ww-nav-link"},
+                attrs={"href": item.get("href", "#"), "class": "bw_nav_link ww-nav-link"},
                 content=item.get("text", ""),
             )
         )
-    el = Element("nav", attrs={"class": "ww-nav"}, content=links)
+    el = Element("nav", attrs={"class": "bw_nav bw_nav_pills ww-nav"}, content=links)
     p.add(el)
     return el

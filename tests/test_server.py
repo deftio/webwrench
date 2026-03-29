@@ -158,11 +158,14 @@ class TestWebwrenchServer:
         assert b"404" in writer.data
 
     @pytest.mark.asyncio
-    async def test_handle_action_missing_session(self):
+    async def test_handle_action_auto_creates_session(self):
+        """Missing session is auto-created; request continues to widget lookup."""
         server = WebwrenchServer()
         writer = MockStreamWriter()
         await server._handle_action("nonexistent", b'{}', writer)
-        assert b"404" in writer.data
+        # Session was auto-created (widget_id="" not found -> 200 ok:false)
+        assert b'{"ok":false}' in writer.data
+        assert server.sessions.get("nonexistent") is not None
 
     @pytest.mark.asyncio
     async def test_handle_action_invalid_json(self):
@@ -180,7 +183,7 @@ class TestWebwrenchServer:
         writer = MockStreamWriter()
         body = json.dumps({"widget_id": "no-such-widget", "action": "click"}).encode()
         await server._handle_action("c1", body, writer)
-        assert b"404" in writer.data
+        assert b'{"ok":false}' in writer.data
 
     @pytest.mark.asyncio
     async def test_handle_action_click(self):
@@ -223,7 +226,7 @@ class TestWebwrenchServer:
         writer = MockStreamWriter()
         await server._handle_action("c1", b"", writer)
         # Empty body = empty payload, widget_id will be "", so widget not found
-        assert b"404" in writer.data
+        assert b'{"ok":false}' in writer.data
 
     @pytest.mark.asyncio
     async def test_route_get_root(self):
@@ -252,6 +255,13 @@ class TestWebwrenchServer:
         body = json.dumps({"widget_id": "b1", "action": "click"}).encode()
         await server._route("POST", "/bw/return/action/c1", {}, body, writer)
         assert b"200" in writer.data
+
+    @pytest.mark.asyncio
+    async def test_route_favicon(self):
+        server = WebwrenchServer()
+        writer = MockStreamWriter()
+        await server._route("GET", "/favicon.ico", {}, b"", writer)
+        assert b"204 No Content" in writer.data
 
     @pytest.mark.asyncio
     async def test_route_404(self):
@@ -296,6 +306,111 @@ class TestWebwrenchServer:
         if session and session._async_queue:
             await session._async_queue.put({"type": "patch", "target": "p1", "content": "updated"})
 
+        try:
+            await asyncio.wait_for(task, timeout=2)
+        except asyncio.TimeoutError:
+            task.cancel()
+
+
+class TestMultiPageRouting:
+    @pytest.mark.asyncio
+    async def test_app_page_routing(self):
+        """App with two pages serves correct HTML for each path."""
+        from webwrench.app import App
+
+        app = App()
+
+        @app.page("/")
+        def home(ctx):
+            ctx.title("Home Page")
+
+        @app.page("/about")
+        def about(ctx):
+            ctx.title("About Page")
+
+        server = WebwrenchServer(app=app)
+        # Request /
+        writer = MockStreamWriter()
+        await server._route("GET", "/", {}, b"", writer)
+        assert b"<!DOCTYPE html>" in writer.data
+        assert b"Home Page" in writer.data
+
+        # Request /about
+        writer2 = MockStreamWriter()
+        await server._route("GET", "/about", {}, b"", writer2)
+        assert b"<!DOCTYPE html>" in writer2.data
+        assert b"About Page" in writer2.data
+
+    @pytest.mark.asyncio
+    async def test_app_page_unknown_path_404(self):
+        """Unregistered paths still 404."""
+        from webwrench.app import App
+
+        app = App()
+
+        @app.page("/")
+        def home(ctx):
+            ctx.title("Home")
+
+        server = WebwrenchServer(app=app)
+        writer = MockStreamWriter()
+        await server._route("GET", "/nonexistent", {}, b"", writer)
+        assert b"404" in writer.data
+
+    @pytest.mark.asyncio
+    async def test_session_page_widget_lookup(self):
+        """_handle_action uses session.page for widget lookup."""
+        from webwrench.app import App
+
+        app = App()
+
+        clicked = []
+
+        @app.page("/")
+        def home(ctx):
+            btn = ctx.button("Click Me")
+            btn.on_click(lambda: clicked.append(True))
+
+        server = WebwrenchServer(app=app)
+        # Build the page as the server would
+        from webwrench.state import Session
+        session = server.sessions.create("c1", None)
+        page = app.build_page("/", session)
+        session.page = page
+
+        # Find the button widget id
+        widget_id = list(page._widgets.keys())[0]
+
+        writer = MockStreamWriter()
+        body = json.dumps({"widget_id": widget_id, "action": "click"}).encode()
+        await server._handle_action("c1", body, writer)
+        assert b'{"ok":true}' in writer.data
+        assert clicked == [True]
+
+    @pytest.mark.asyncio
+    async def test_sse_uses_session_page(self):
+        """SSE initial render uses session.page when set."""
+        page1 = Page()
+        page1.add(Element("p", content="session-page", element_id="sp1"))
+
+        server = WebwrenchServer()
+        server._running = True
+        session = server.sessions.create("sse-sp", None)
+        session.page = page1
+
+        writer = MockStreamWriter()
+
+        async def run_sse():
+            await server._serve_sse("sse-sp", writer)
+
+        task = asyncio.create_task(run_sse())
+        await asyncio.sleep(0.05)
+
+        assert b"session-page" in writer.data
+
+        server._running = False
+        if session._async_queue:
+            await session._async_queue.put({"type": "noop"})
         try:
             await asyncio.wait_for(task, timeout=2)
         except asyncio.TimeoutError:

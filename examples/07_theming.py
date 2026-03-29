@@ -1,42 +1,103 @@
 """07 - Theming
 
-Switch between built-in theme presets (light, dark, ocean, forest) using
-a dropdown selector. The page re-renders with the selected theme.
+Dynamic theme switching between light, dark, ocean, and forest presets.
+Selecting a theme from the dropdown calls ww.theme() inside a callback,
+which sends a bw.loadStyles() message over SSE so the browser restyles
+every element immediately.
+
+Concepts: ww.theme(), @select.on_change, ww.card(), ww.metric(),
+          ww.chart(), ww.table(), ww.columns().
 
 Run: python examples/07_theming.py
 """
 
 import webwrench as ww
 
-ww.title("Theme Selector")
-ww.text("Choose a theme preset from the dropdown to restyle the page.")
+# -- Start with ocean theme --
+ww.theme("ocean")
 
-theme_select = ww.select("Theme", options=["light", "dark", "ocean", "forest"], value="light")
+# -- Header --
+ww.title("Theme Gallery")
+ww.text(
+    "Pick a preset from the dropdown to restyle the entire page. "
+    "Every colour -- headings, cards, charts, tables, inputs -- updates "
+    "in one call via bitwrench's loadStyles()."
+)
+
+ww.divider()
+
+# -- Theme selector --
+ww.heading("Choose a Theme", level=2)
+ww.text(
+    "The @theme_select.on_change callback calls ww.theme(value), which "
+    "sets CSS custom properties (--bw-primary, --bw-background, etc.) and "
+    "pushes them to the browser over SSE."
+)
+theme_select = ww.select(
+    "Theme Preset",
+    options=["ocean", "light", "dark", "forest"],
+    value="ocean",
+)
+
 
 @theme_select.on_change
 def on_theme_change(value):
     ww.theme(value)
 
+
 ww.divider()
 
-# Sample content to see the theme in action
-ww.heading("Sample Content", level=2)
-ww.markdown("This is **bold** and this is *italic*. Themes change colors across the page.")
+# -- Sample content --
+ww.heading("Sample Components", level=2)
+ww.text("The cards, metrics, chart, and table below let you judge each theme at a glance.")
 
-ww.metric("Metric Example", "42", delta="+7%", delta_color="green")
+# Metrics row
+kpi = ww.columns(3)
+with kpi[0]:
+    ww.metric("Users", "12,482", delta="+8.3%", delta_color="green")
+with kpi[1]:
+    ww.metric("Revenue", "$1.24M", delta="+14%", delta_color="green")
+with kpi[2]:
+    ww.metric("Churn", "2.1%", delta="-0.4%", delta_color="green")
 
-ww.chart(
-    [28, 48, 40, 19, 86, 27],
-    type="bar",
-    labels=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    title="Weekly Activity",
-)
+# Cards with charts
+row = ww.columns(2)
+with row[0]:
+    with ww.card(title="Weekly Activity"):
+        ww.chart(
+            [28, 48, 40, 19, 86, 27, 63],
+            type="bar",
+            labels=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            title="Commits per Day",
+        )
+with row[1]:
+    with ww.card(title="Traffic Sources"):
+        ww.chart(
+            [45, 25, 20, 10],
+            type="pie",
+            labels=["Organic", "Direct", "Referral", "Social"],
+            title="Visitor Breakdown",
+        )
 
+ww.divider()
+
+# Table
+ww.heading("Inventory Snapshot", level=3)
 ww.table([
-    {"Item": "Widget A", "Status": "Active", "Count": 140},
-    {"Item": "Widget B", "Status": "Inactive", "Count": 38},
-    {"Item": "Widget C", "Status": "Active", "Count": 97},
+    {"Item": "Widget A", "Status": "Active", "Stock": 140, "Trend": "+12%"},
+    {"Item": "Widget B", "Status": "Low Stock", "Stock": 38, "Trend": "-5%"},
+    {"Item": "Widget C", "Status": "Active", "Stock": 97, "Trend": "+3%"},
+    {"Item": "Widget D", "Status": "Inactive", "Stock": 0, "Trend": "--"},
 ])
+
+# Markdown
+ww.divider()
+ww.heading("Formatted Text", level=3)
+ww.markdown(
+    "Themes affect **bold**, *italic*, and `inline code` text. "
+    "They also change link colours, borders, and surface tones so the "
+    "entire page feels cohesive."
+)
 
 if __name__ == "__main__":
     ww.serve()

@@ -1,17 +1,17 @@
 # webwrench
 
-Python UI framework for building interactive web dashboards and self-contained HTML reports.
+[![CI](https://github.com/deftio/webwrench/actions/workflows/ci.yml/badge.svg)](https://github.com/deftio/webwrench/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/webwrench.svg)](https://pypi.org/project/webwrench/)
+[![Python](https://img.shields.io/pypi/pyversions/webwrench.svg)](https://pypi.org/project/webwrench/)
+[![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE.txt)
 
-webwrench is powered by [bitwrench.js](https://github.com/deftio/bitwrench) on the frontend and uses the bwserve protocol (SSE down, POST back) for live server-driven updates. Build dashboards with pure Python -- no JavaScript, no build tools, no npm.
+A Python library for building interactive web dashboards and self-contained HTML reports. It uses [bitwrench.js](https://github.com/deftio/bitwrench) for rendering and the bwserve protocol (SSE down, POST back) for live updates. No JavaScript required on your end, no build tools, no runtime dependencies.
 
-## Features
-
-- **Script mode**: Top-to-bottom, sequential -- write a dashboard in 5 lines
-- **App mode**: Decorator-based routing for multi-page applications
-- **Static HTML export**: Same API, same charts, self-contained file you can email to anyone
-- **Chart.js built in**: Bar, line, pie, scatter, radar, and more -- no extra installs
-- **Zero runtime dependencies**: `pip install webwrench` is all you need
-- **Surgical updates**: Only the changed element updates, not the whole page
+- **Script mode** for quick dashboards, **app mode** with decorator-based routing for multi-page apps
+- **Static HTML export** -- same API produces a single self-contained file you can open offline or email
+- **Chart.js included** -- bar, line, pie, scatter, radar, and more without extra installs
+- **Callback-driven updates** -- define the UI once, update individual elements via `on_change`/`on_click`
+- **Zero runtime dependencies** -- `pip install webwrench` pulls nothing else in
 
 ## Installation
 
@@ -19,9 +19,11 @@ webwrench is powered by [bitwrench.js](https://github.com/deftio/bitwrench) on t
 pip install webwrench
 ```
 
+Requires Python 3.10+.
+
 ## Quick Start
 
-### Hello World
+### Script Mode
 
 ```python
 import webwrench as ww
@@ -60,7 +62,7 @@ ww.text("Revenue grew 48% year-over-year.")
 ww.export('quarterly-report.html')
 ```
 
-The exported file is fully self-contained -- open it in any browser, no server needed. Charts remain interactive (tooltips, hover, legend toggling).
+The exported file is self-contained -- open it in any browser, no server needed. Charts stay interactive (tooltips, hover, legend toggling).
 
 ### Multi-Page App
 
@@ -83,7 +85,7 @@ def settings(ctx):
     def switch(value):
         ctx.set_theme(value)
 
-app.serve(port=8080)
+app.serve(port=6502)
 ```
 
 ## API Reference
@@ -182,89 +184,28 @@ ww.screenshot('dashboard.png')          # Screenshot via html2canvas
 ww.download('data.csv', content=csv_string)  # Trigger browser download
 ```
 
-## Coming from Streamlit?
-
-webwrench will feel familiar. Here are the key differences:
-
-| | Streamlit | webwrench |
-|---|---|---|
-| **Script runs** | Re-runs on every interaction | Runs once to build initial UI |
-| **Updates** | Full page re-render | Only the changed element updates |
-| **Static export** | Not available | `ww.export('report.html')` |
-| **Dependencies** | 30+ pip packages | Zero runtime deps |
-
-**Typical migration pattern:**
-
-```python
-# Streamlit
-import streamlit as st
-st.title("Dashboard")
-val = st.slider("Multiplier", 1, 10, 1)
-st.bar_chart({"data": [d * val for d in data]})
-
-# webwrench
-import webwrench as ww
-ww.title("Dashboard")
-chart = ww.chart(data, type='bar', labels=labels)
-slider = ww.slider("Multiplier", min=1, max=10, value=1)
-
-@slider.on_change
-def update(value):
-    chart.update([d * value for d in data])
-
-ww.serve()
-```
-
-The main difference: in webwrench, you define the UI once and use callbacks to update specific elements. No re-running, no `@st.cache_data`, no `session_state` initialization guards.
-
-## Coming from Gradio?
-
-If you've used Gradio's event handler model, webwrench's callback pattern will feel natural:
-
-```python
-# Gradio
-import gradio as gr
-def update(multiplier):
-    return create_plot(multiplier)
-demo = gr.Interface(fn=update, inputs=gr.Slider(1, 10), outputs=gr.Plot())
-demo.launch()
-
-# webwrench
-import webwrench as ww
-chart = ww.chart(data, type='bar')
-slider = ww.slider("Multiplier", min=1, max=10, value=1)
-
-@slider.on_change
-def update(value):
-    chart.update([d * value for d in data])
-
-ww.serve()
-```
-
-webwrench bundles Chart.js directly, so you don't need matplotlib or plotly for common chart types.
-
-## Architecture
+## How It Works
 
 ```
  Python (webwrench)                    Browser
 +------------------------+           +-------------------------+
 | Your Python script     |           | bitwrench.js (bundled)  |
 |   |                    |           |   +-- Chart.js           |
-|   v                    |  SSE -->  |   +-- (D3, Leaflet,     |
-| webwrench server       | -------> |       three.js planned)  |
-|  (asyncio, built-in)   | <------- |   +-- bwclient.js        |
-|                        |  POST <-- |                         |
+|   v                    |  SSE -->  |   +-- bwclient.js        |
+| webwrench server       | -------> |                          |
+|  (asyncio, built-in)   | <------- |                          |
+|                        |  POST <-- |                          |
 +------------------------+           +-------------------------+
 ```
 
-- **Frontend**: bitwrench.js handles all DOM operations. webwrench generates [TACO](https://github.com/nicklausw/bitwrench) (Tag, Attributes, Content, Options) dicts that bitwrench renders.
-- **Backend**: Pure Python asyncio HTTP server. No Flask, no FastAPI, no external deps.
-- **Protocol**: bwserve -- SSE for server-to-client updates, POST for client-to-server callbacks.
+- **Frontend**: bitwrench.js handles DOM operations. webwrench generates TACO (Tag, Attributes, Content, Options) dicts that bitwrench renders.
+- **Backend**: Pure Python asyncio HTTP server. No Flask, no FastAPI, no external dependencies.
+- **Protocol**: bwserve -- SSE for server-to-client updates, POST for client-to-server actions.
+- **Updates**: Only the changed element is patched, not the whole page.
 
 ## Development
 
 ```bash
-# Clone and install dev dependencies
 git clone https://github.com/deftio/webwrench.git
 cd webwrench
 pip install -e ".[dev]"
@@ -272,21 +213,42 @@ pip install -e ".[dev]"
 # Run tests
 pytest
 
-# Run tests with coverage
-pytest --cov=webwrench --cov-report=term-missing
+# Run tests with coverage (100% required)
+pytest --cov=webwrench --cov-report=term-missing --cov-fail-under=100
 
-# Lint
+# Lint + security scan
 ruff check webwrench/
+bandit -r webwrench/ -c pyproject.toml
 ```
 
-## Roadmap
+### Releasing
 
-- **v0.1.0** (current): Core display elements, widgets, Chart.js, themes, serve/export
-- **v0.2.0**: Layout primitives, multi-page apps, pandas integration, more widgets
-- **v0.3.0**: D3, Leaflet maps, three.js 3D, advanced visualization
-- **v0.4.0**: WebSocket transport, authentication, production features
-- **v0.5.0+**: Plugin system, CLI, hot reload, Jupyter integration
+**Direct from main** (quick):
+
+```bash
+./scripts/release.sh 0.2.0
+```
+
+This bumps the version, runs lint + tests + build, tags, and pushes.
+
+**Two-phase** (for bigger releases):
+
+```bash
+# Phase 1: bump version + create release branch
+./scripts/start-release.sh 0.2.0
+
+# ... develop, commit, iterate ...
+
+# Phase 2: validate, test, build, squash-merge to main, tag, push
+./scripts/release.sh
+```
+
+After either flow, create a GitHub Release to publish to PyPI:
+
+```bash
+gh release create v0.2.0 --title "webwrench v0.2.0" --generate-notes
+```
 
 ## License
 
-BSD2
+BSD-2-Clause. See [LICENSE.txt](LICENSE.txt).

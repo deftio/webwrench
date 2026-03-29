@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Layout API — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="../guides/script-mode.html">Script Mode</a>
+  <a href="../guides/app-mode.html">App Mode</a>
+  <a href="../guides/charts.html">Charts</a>
+  <a href="../guides/layout.html">Layout</a>
+  <a href="../guides/theming.html">Theming</a>
+  <a href="../guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="display.html">Display</a>
+  <a href="widgets.html">Widgets</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">API</a> / Layout</div>
+  <h1>Layout API</h1>
+
+  <h2>ww.columns(spec=2)</h2>
+  <p>Create a multi-column layout.</p>
+  <dl class="param-list">
+    <dt>spec : int | list[int]</dt><dd>Number of equal columns, or list of relative widths.</dd>
+  </dl>
+  <p>Returns a <code>ColumnSet</code>. Access individual columns with <code>[index]</code> and use as context managers.</p>
+  <pre><code class="language-python">cols = ww.columns([2, 1])
+with cols[0]:
+    ww.text("Wide column")
+with cols[1]:
+    ww.text("Narrow column")</code></pre>
+
+  <h2>ww.tabs(labels)</h2>
+  <p>Tabbed content container.</p>
+  <dl class="param-list">
+    <dt>labels : list[str]</dt><dd>Tab labels.</dd>
+  </dl>
+  <p>Returns a <code>TabSet</code>. Access individual tabs with <code>[index]</code>.</p>
+  <pre><code class="language-python">ts = ww.tabs(["Tab A", "Tab B"])
+with ts[0]:
+    ww.text("Content A")
+with ts[1]:
+    ww.text("Content B")</code></pre>
+
+  <h2>ww.accordion(title, open=False)</h2>
+  <p>Collapsible section. Use as a context manager.</p>
+  <dl class="param-list">
+    <dt>title : str</dt><dd>Accordion header text.</dd>
+    <dt>open : bool</dt><dd>Start expanded. Default <code>False</code>.</dd>
+  </dl>
+
+  <h2>ww.sidebar()</h2>
+  <p>Side panel. Use as a context manager. Content inside appears in a fixed sidebar.</p>
+
+  <h2>ww.card(title=None)</h2>
+  <p>Card container with optional title. Use as a context manager.</p>
+
+  <h2>ww.grid(template="1fr 1fr")</h2>
+  <p>CSS Grid container.</p>
+  <dl class="param-list">
+    <dt>template : str</dt><dd>CSS <code>grid-template-columns</code> value.</dd>
+  </dl>
+
+  <h2>ww.modal(title)</h2>
+  <p>Modal dialog overlay. Use as a context manager.</p>
+  <dl class="param-list">
+    <dt>title : str</dt><dd>Modal title.</dd>
+  </dl>
+
+  <h2>ww.nav(items)</h2>
+  <p>Navigation bar.</p>
+  <dl class="param-list">
+    <dt>items : list[dict]</dt><dd>List of <code>{"href": "...", "text": "..."}</code> dicts.</dd>
+  </dl>
+  <pre><code class="language-python">ww.nav([
+    {"href": "/", "text": "Home"},
+    {"href": "/docs", "text": "Docs"},
+])</code></pre>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

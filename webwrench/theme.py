@@ -89,11 +89,21 @@ def set_theme(
     """Set the theme on a page.
 
     Returns the resolved palette dict.
+    If called during a callback (active session exists), also sends a
+    loadStyles SSE message so the browser updates immediately.
     """
     if page is None:
         page = get_default_page()
     palette = resolve_theme(name, **kwargs)
     page._theme = palette
+
+    # If we're inside a callback, push the theme to the browser via SSE
+    from webwrench._context import get_active_session
+    session = get_active_session()
+    if session is not None:
+        msg = make_load_styles_call(palette)
+        session.send_message(msg)
+
     return palette
 
 

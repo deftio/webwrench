@@ -139,6 +139,17 @@ class TestCard:
         c = card()
         assert c.content == []
 
+    def test_card_body_wraps_children(self):
+        page = Page()
+        c = card(title="T", page=page)
+        with c:
+            page.add(Element("p", content="child", element_id="p1"))
+        # Title is first, body wrapper is second
+        assert len(c.content) == 2
+        body = c.content[1]
+        assert "bw_card_body" in body.attrs["class"]
+        assert body.content[0].content == "child"
+
 
 class TestGrid:
     def test_creates_grid(self):
@@ -151,6 +162,11 @@ class TestGrid:
         g = grid()
         assert "1fr 1fr" in g.attrs["style"]
 
+    def test_uses_grid_template_columns(self):
+        g = grid("1fr 1fr 1fr")
+        assert "grid-template-columns:" in g.attrs["style"]
+        assert "grid-template:" not in g.attrs["style"].replace("grid-template-columns", "")
+
 
 class TestModal:
     def test_creates_modal(self):
@@ -162,7 +178,10 @@ class TestModal:
     def test_has_header(self):
         m = modal("Title")
         assert len(m.content) >= 1
-        assert m.content[0].content == "Title"
+        # Header contains an h5 with the title text
+        header = m.content[0]
+        assert "bw_modal_header" in header.attrs["class"]
+        assert header.content[0].content == "Title"
 
     def test_close_method_exists(self):
         m = modal("Test")

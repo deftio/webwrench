@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Examples — webwrench</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="index.html">Home</a>
+  <a href="getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="guides/script-mode.html">Script Mode</a>
+  <a href="guides/app-mode.html">App Mode</a>
+  <a href="guides/charts.html">Charts</a>
+  <a href="guides/layout.html">Layout</a>
+  <a href="guides/theming.html">Theming</a>
+  <a href="guides/export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="api/display.html">Display</a>
+  <a href="api/widgets.html">Widgets</a>
+  <a href="api/charts.html">Charts</a>
+  <a href="api/layout.html">Layout</a>
+  <a href="api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="architecture.html">Architecture</a>
+  <a href="examples.html">Examples</a>
+  <a href="migration/from-streamlit.html">From Streamlit</a>
+  <a href="migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="index.html">Home</a> / Examples</div>
+  <h1>Examples</h1>
+
+  <p>All examples are in the <a href="https://github.com/deftio/webwrench/tree/main/examples"><code>examples/</code></a> directory. Each script is self-contained and runnable:</p>
+  <pre><code class="language-bash">python examples/01_hello_world.py</code></pre>
+
+  <div class="feature-cards">
+    <div class="feature-card">
+      <h3>01 &mdash; Hello World</h3>
+      <p>Minimal app: title, text, and serve.</p>
+    </div>
+    <div class="feature-card">
+      <h3>02 &mdash; Interactive Chart</h3>
+      <p>Bar chart with a slider to scale values dynamically.</p>
+    </div>
+    <div class="feature-card">
+      <h3>03 &mdash; Multi Chart</h3>
+      <p>Multiple chart types (bar, line, pie) on one page.</p>
+    </div>
+    <div class="feature-card">
+      <h3>04 &mdash; Dashboard</h3>
+      <p>Metrics, charts, and tables in a columnar layout.</p>
+    </div>
+    <div class="feature-card">
+      <h3>05 &mdash; Form Widgets</h3>
+      <p>Showcase of all input widget types.</p>
+    </div>
+    <div class="feature-card">
+      <h3>06 &mdash; Data Table</h3>
+      <p>Sortable, searchable, paginated table.</p>
+    </div>
+    <div class="feature-card">
+      <h3>07 &mdash; Theming</h3>
+      <p>Switch between theme presets with a dropdown.</p>
+    </div>
+    <div class="feature-card">
+      <h3>08 &mdash; Static Export</h3>
+      <p>Export a report to self-contained HTML.</p>
+    </div>
+    <div class="feature-card">
+      <h3>09 &mdash; Multi-Page App</h3>
+      <p>App mode with multiple routes and navigation.</p>
+    </div>
+    <div class="feature-card">
+      <h3>10 &mdash; Tabs &amp; Accordion</h3>
+      <p>Tabbed and collapsible content sections.</p>
+    </div>
+    <div class="feature-card">
+      <h3>11 &mdash; Sidebar Nav</h3>
+      <p>Sidebar layout with navigation links.</p>
+    </div>
+    <div class="feature-card">
+      <h3>12 &mdash; Chart Datasets</h3>
+      <p>Chart with multiple datasets and legends.</p>
+    </div>
+    <div class="feature-card">
+      <h3>13 &mdash; DataFrame Plot</h3>
+      <p>Using plot() with dict/DataFrame-style data.</p>
+    </div>
+    <div class="feature-card">
+      <h3>14 &mdash; Live Updates</h3>
+      <p>Progress bar updated via button callback.</p>
+    </div>
+    <div class="feature-card">
+      <h3>15 &mdash; Grid Layout</h3>
+      <p>CSS Grid with metric cards.</p>
+    </div>
+    <div class="feature-card">
+      <h3>16 &mdash; Modal Dialog</h3>
+      <p>Modal overlay triggered by a button.</p>
+    </div>
+  </div>
+
+  <h2>Running Examples</h2>
+  <pre><code class="language-bash"># Clone the repo
+git clone https://github.com/deftio/webwrench.git
+cd webwrench
+
+# Install
+pip install -e .
+
+# Run any example
+python examples/01_hello_world.py</code></pre>
+
+  <p>Then open <a href="http://localhost:6502">http://localhost:6502</a> in your browser.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

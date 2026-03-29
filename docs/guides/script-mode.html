@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Script Mode — webwrench</title>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <button class="hamburger" aria-label="Menu">&#9776;</button>
+  <a class="logo" href="../index.html">webwrench <span>docs</span></a>
+  <div class="header-links">
+    <a href="https://github.com/deftio/webwrench">GitHub</a>
+    <a href="https://pypi.org/project/webwrench/">PyPI</a>
+    <button class="theme-toggle">Dark</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <h3>Getting Started</h3>
+  <a href="../index.html">Home</a>
+  <a href="../getting-started.html">Installation</a>
+  <h3>Guides</h3>
+  <a href="script-mode.html">Script Mode</a>
+  <a href="app-mode.html">App Mode</a>
+  <a href="charts.html">Charts</a>
+  <a href="layout.html">Layout</a>
+  <a href="theming.html">Theming</a>
+  <a href="export.html">Export</a>
+  <h3>API Reference</h3>
+  <a href="../api/display.html">Display</a>
+  <a href="../api/widgets.html">Widgets</a>
+  <a href="../api/charts.html">Charts</a>
+  <a href="../api/layout.html">Layout</a>
+  <a href="../api/server.html">Server &amp; App</a>
+  <h3>More</h3>
+  <a href="../architecture.html">Architecture</a>
+  <a href="../examples.html">Examples</a>
+  <a href="../migration/from-streamlit.html">From Streamlit</a>
+  <a href="../migration/from-gradio.html">From Gradio</a>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="../index.html">Home</a> / <a href="../index.html">Guides</a> / Script Mode</div>
+  <h1>Script Mode</h1>
+
+  <p>Script mode is the simplest way to build a webwrench app. Write a flat Python script, call module-level functions, and serve.</p>
+
+  <h2>How It Works</h2>
+  <p>When you call <code>ww.title()</code>, <code>ww.text()</code>, or any display function, webwrench appends elements to a <strong>default page</strong>. When you call <code>ww.serve()</code>, that page is served to the browser.</p>
+
+  <pre><code class="language-python">import webwrench as ww
+
+ww.title("My App")
+ww.text("Hello from script mode!")
+ww.serve()</code></pre>
+
+  <h2>Adding Display Elements</h2>
+  <p>Elements are rendered in the order you add them:</p>
+  <pre><code class="language-python">import webwrench as ww
+
+ww.title("Report")
+ww.heading("Section 1", level=2)
+ww.text("Some content here.")
+ww.divider()
+ww.markdown("**Bold** and *italic* text")
+ww.code("print('hello')", lang="python")
+ww.serve()</code></pre>
+
+  <h2>Widgets and Callbacks</h2>
+  <p>Widgets return a <code>WidgetHandle</code>. Use <code>.on_change</code> to register a callback:</p>
+  <pre><code class="language-python">import webwrench as ww
+
+ww.title("Counter")
+display = ww.text("Count: 0")
+btn = ww.button("Increment")
+count = 0
+
+@btn.on_click
+def clicked():
+    global count
+    count += 1
+    display.update(f"Count: {count}")
+
+ww.serve()</code></pre>
+
+  <div class="callout tip">
+    <strong>Tip:</strong> Widget handles have a <code>.value</code> property that holds the current value. Use <code>.update(new_value)</code> to change a display element.
+  </div>
+
+  <h2>Charts with Interactivity</h2>
+  <pre><code class="language-python">import webwrench as ww
+
+data = [10, 20, 30, 40]
+chart = ww.chart(data, type="bar", labels=["Q1", "Q2", "Q3", "Q4"])
+slider = ww.slider("Multiply", min=1, max=5, value=1)
+
+@slider.on_change
+def scale(value):
+    chart.update([d * value for d in data])
+
+ww.serve()</code></pre>
+
+  <h2>When to Use Script Mode</h2>
+  <ul>
+    <li>Quick prototypes and demos</li>
+    <li>Single-page dashboards</li>
+    <li>Static reports (with <code>ww.export()</code>)</li>
+    <li>Teaching and tutorials</li>
+  </ul>
+
+  <p>For multi-page apps with routing and per-session state, see <a href="app-mode.html">App Mode</a>.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../js/nav.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
